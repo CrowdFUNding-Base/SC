@@ -3,18 +3,45 @@ pragma solidity ^0.8.30;
 
 import {Test, console} from "forge-std/Test.sol";
 import {Campaign} from "../src/Campaign.sol";
+import {IDRX} from "../src/MockToken/MockIDRX.sol";
+import {IERC20} from "openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract CampaignTest is Test {
     Campaign campaign;
+    address campaignAddress;
     address user;
+    address user2;
+    IDRX mockToken;
+
+    uint256 INITIAL_AMOUNT = 10 ether;
+    uint256 CAMPAIGN_TARGET = 2 ether;
+    uint256 DONATE_AMOUNT = 4 ether;
+    uint256 USER2_BALANCE = 4 ether;
+    uint256 WITHDRAW_AMOUNT = 2 ether;
+    uint256 DONATE_MULTIPLIER = 5;
+    uint256 ZERO = 0;
+
+    modifier initCampaign{
+        campaignAddress = campaign.createCampaign("Bencana Jawa", "Andi Saputra", CAMPAIGN_TARGET);
+        _;
+    }
+
+    modifier initCampaignAndUser{
+        hoax(user, INITIAL_AMOUNT);
+        campaignAddress = campaign.createCampaign("Bencana Jawa", "Andi Saputra", CAMPAIGN_TARGET);
+        _;
+    }
 
     function setUp() public {
         campaign = new Campaign();        
         user = makeAddr("user");
+        user2 = makeAddr("user2");  
+        mockToken = new IDRX();     
+        mockToken.mint(user, INITIAL_AMOUNT);
+        mockToken.mint(user2, USER2_BALANCE);
     }
 
-    function testCreateCampaign() public {
-        address campaignAddress = campaign.createCampaign("Bencana Jawa", "Andi Saputra", 2 ether);
+    function testCreateCampaign() public initCampaign() {
         (string memory name, string memory creatorName, uint256 balance, uint256 targetAmount, uint256 creationTime, address owner) = campaign.getCampaignInfo(campaignAddress);
         assertEq(name, "Bencana Jawa");
         assertEq(creatorName, "Andi Saputra");
@@ -22,62 +49,136 @@ contract CampaignTest is Test {
         console.log("Campaign created at address:", campaignAddress);
     }
 
-    function testDonate() public {
-        address campaignAddress = campaign.createCampaign("Bencana Jawa", "Andi Saputra", 2 ether);
-        hoax(user, 10 ether);
-        campaign.donate{value: 1 ether}(campaignAddress, 1 ether);
+    function testDonate() public initCampaignAndUser  {
+        campaign.donate{value: DONATE_AMOUNT}(campaignAddress, DONATE_AMOUNT);
         (, , uint256 balance, , , ) = campaign.getCampaignInfo(campaignAddress);
-        assertEq(balance, 1 ether);
-        assertEq(user.balance, 9 ether);
+        assertEq(balance, DONATE_AMOUNT);
+        assertEq(user2.balance, USER2_BALANCE - DONATE_AMOUNT);
         console.log("Donation successful, campaign balance:", balance);
     }
 
-    function testWithdraw() public {
-        hoax(user, 10 ether);
-        address campaignAddress = campaign.createCampaign("Bencana Jawa", "Andi Saputra", 2 ether);
-        address user2 = makeAddr("user2");
-        hoax(user2, 5 ether);
-        campaign.donate{value: 1 ether}(campaignAddress, 1 ether);
-        vm.prank(user);
-        campaign.withdraw(campaignAddress, 1 ether);
+    
+    function testDonateERC20() public initCampaignAndUser  {
+        console.log("BALANCE USER 2", mockToken.getBalance(user2));
+        console.log("BALANCE USER", mockToken.getBalance(user));
+        
+        // User2 must approve the campaign contract to spend their tokens FIRST
+        vm.prank(user2);
+        mockToken.approve(address(campaign), DONATE_AMOUNT);
+        
+        // Now user2 can donate
+        vm.prank(user2);
+        campaign.donate(campaignAddress, DONATE_AMOUNT, address(mockToken));
+        
         (, , uint256 balance, , , ) = campaign.getCampaignInfo(campaignAddress);
-        assertEq(balance, 0);
-        assertEq(user2.balance, 4 ether);
-        assertEq(user.balance, 11 ether);
-        console.log("Withdrawal successful, campaign balance:", balance);
-        console.log("User balance after withdrawal:", user.balance);   
-        console.log("User2 balance after donation:", user2.balance);
+        assertEq(balance, DONATE_AMOUNT);
+        // Check token balance decreased, not ETH balance
+        assertEq(mockToken.getBalance(user2), USER2_BALANCE - DONATE_AMOUNT);
+        console.log("Donation successful, campaign balance:", balance);
     }
 
-    function testOnlyOwnerCanWithdraw() public {
-        hoax(user, 10 ether);
-        address campaignAddress = campaign.createCampaign("Bencana Jawa", "Andi Saputra", 2 ether);
+
+    function testDonateMustBeGreaterThanZero() public initCampaignAndUser {
+        vm.expectRevert(abi.encodeWithSelector(Campaign.AmountMustBeGreaterThanZero.selector, ZERO));
+        campaign.donate{value: ZERO}(campaignAddress, ZERO);
+    }
+
+    function testDonateERC20MustBeGreaterThanZero() public initCampaignAndUser {
+        hoax(user2);
+        IERC20(mockToken).approve(address(campaign), DONATE_AMOUNT);
+        vm.expectRevert(abi.encodeWithSelector(Campaign.AmountMustBeGreaterThanZero.selector, ZERO));
+        campaign.donate(campaignAddress, ZERO, address(mockToken));
+    }
+
+    function testDonateOnlyOnAvailableCampaign () public initCampaignAndUser  {
+        campaignAddress = address(1);
+        vm.expectRevert(abi.encodeWithSelector(Campaign.CampaignNotFound.selector, campaignAddress));
+        campaign.donate{value: DONATE_AMOUNT}(campaignAddress, DONATE_AMOUNT);
+    }
+
+    function testDonateERC20OnlyOnAvailableCampaign () public initCampaignAndUser  {
+        campaignAddress = address(1);
+        hoax(user2);
+        IERC20(mockToken).approve(address(campaign), DONATE_AMOUNT);
+        vm.expectRevert(abi.encodeWithSelector(Campaign.CampaignNotFound.selector, campaignAddress));
+        vm.prank(user2);
+        campaign.donate(campaignAddress, DONATE_AMOUNT, address(mockToken));
+    }
+
+    function testWithdraw() public initCampaignAndUser  {
+        hoax(user2, USER2_BALANCE);
+        campaign.donate{value: DONATE_AMOUNT}(campaignAddress, DONATE_AMOUNT);
+        vm.startPrank(user);
+        campaign.withdraw(campaignAddress, WITHDRAW_AMOUNT);
+        (, , uint256 balance, , , ) = campaign.getCampaignInfo(campaignAddress);
+        console.log("No ", balance, user2.balance, user.balance);
+        assertEq(balance, DONATE_AMOUNT - WITHDRAW_AMOUNT);
+        assertEq(user2.balance, USER2_BALANCE - DONATE_AMOUNT);
+        assertEq(user.balance, INITIAL_AMOUNT + WITHDRAW_AMOUNT);
+        console.log("Withdrawal successful, campaign balance:", balance);
+        vm.stopPrank();
+    }
+
+    function testWithdrawERC20() public initCampaignAndUser  {
+        hoax(user2, USER2_BALANCE);
+        IERC20(mockToken).approve(address(campaign), DONATE_AMOUNT);
+        hoax(user2);
+        campaign.donate(campaignAddress, DONATE_AMOUNT, address(mockToken));
+        hoax(user);
+        campaign.withdraw(campaignAddress, WITHDRAW_AMOUNT, address(mockToken));
+        (, , uint256 balance, , , ) = campaign.getCampaignInfo(campaignAddress);
+        console.log("WITH ", balance, user2.balance, user.balance);
+        assertEq(balance, DONATE_AMOUNT - WITHDRAW_AMOUNT);
+        assertEq(mockToken.balanceOf(user2), USER2_BALANCE - DONATE_AMOUNT);
+        assertEq(mockToken.balanceOf(user), INITIAL_AMOUNT + WITHDRAW_AMOUNT);
+        console.log("Withdrawal successful, campaign balance:", balance);
+    }
+
+    function testWithdrawLessBalnace() public initCampaignAndUser  {
+        campaign.donate{value: DONATE_AMOUNT}(campaignAddress, DONATE_AMOUNT);
+        vm.expectRevert(abi.encodeWithSelector(Campaign.InsufficientBalance.selector, WITHDRAW_AMOUNT + DONATE_AMOUNT, DONATE_AMOUNT));
+        vm.prank(user);
+        campaign.withdraw(campaignAddress, WITHDRAW_AMOUNT + DONATE_AMOUNT);
+    }
+
+    function testWithdrawERC20LessBalance() public initCampaignAndUser  {
+        hoax(user2, DONATE_AMOUNT);
+        IERC20(mockToken).approve(address(campaign), DONATE_AMOUNT);
+        hoax(user2);
+        campaign.donate(campaignAddress, DONATE_AMOUNT, address(mockToken));
+        hoax(user);
+        vm.expectRevert(abi.encodeWithSelector(Campaign.InsufficientBalance.selector, WITHDRAW_AMOUNT + DONATE_AMOUNT, DONATE_AMOUNT));
+        campaign.withdraw(campaignAddress, WITHDRAW_AMOUNT + DONATE_AMOUNT, address(mockToken));
+    }
+
+    function testOnlyOwnerCanWithdraw() public initCampaignAndUser  {
         (, , , , , address owner) = campaign.getCampaignInfo(campaignAddress);
         assertEq(owner, user);
-        address user2 = makeAddr("user2");
-        console.log("Campaign created by:", owner);
-        console.log("User1 (owner) address is:", user);
-        console.log("Campaign owner is:", owner);
-        console.log("User2 attempting to donate");
-        hoax(user2, 5 ether);
-        console.log("User2 address is:", user2);
-        campaign.donate{value: 1 ether}(campaignAddress, 1 ether);
-        console.log("Attempting withdrawal by non-owner... (user2)");
-        vm.prank(user2);
+        campaign.donate{value: DONATE_AMOUNT}(campaignAddress, DONATE_AMOUNT);
+        hoax(user2);
         vm.expectRevert(abi.encodeWithSelector(Campaign.OnlyOwnerCanWithdraw.selector, user2));
-        campaign.withdraw(campaignAddress, 1 ether);
+        campaign.withdraw(campaignAddress, WITHDRAW_AMOUNT);
+        hoax(user);
+        campaign.withdraw(campaignAddress, WITHDRAW_AMOUNT);
     }
 
-    function testReentrancyAttack() public {
-        // This is a placeholder for a reentrancy attack test.
-        // Implementing a full reentrancy attack test would require a malicious contract.
-        // For now, we will just ensure that the withdraw function is protected by nonReentrant.
-        hoax(user, 10 ether);
-        address campaignAddress = campaign.createCampaign("Bencana Jawa", "Andi Saputra", 2 ether);
-        hoax(user, 5 ether);
-        campaign.donate{value: 5 ether}(campaignAddress, 5 ether);
+    function testOnlyOwnerCanWithdrawERC20() public initCampaignAndUser  {
+        (, , , , , address owner) = campaign.getCampaignInfo(campaignAddress);
+        assertEq(owner, user);
+        vm.startPrank(user2);
+        IERC20(mockToken).approve(address(campaign), DONATE_AMOUNT);
+        campaign.donate(campaignAddress, DONATE_AMOUNT, address(mockToken));
+        vm.expectRevert(abi.encodeWithSelector(Campaign.OnlyOwnerCanWithdraw.selector, user2));
+        campaign.withdraw(campaignAddress, WITHDRAW_AMOUNT, address(mockToken));
+        vm.stopPrank();
         vm.prank(user);
-        campaign.withdraw(campaignAddress, 1 ether);
+        campaign.withdraw(campaignAddress, WITHDRAW_AMOUNT, address(mockToken));
+    }
+
+    function testReentrancyAttack() public initCampaignAndUser () {
+        campaign.donate{value: DONATE_AMOUNT}(campaignAddress, DONATE_AMOUNT);
+        hoax(user);
+        campaign.withdraw(campaignAddress, WITHDRAW_AMOUNT);
         console.log("Reentrancy protection test passed.");
     }
 }

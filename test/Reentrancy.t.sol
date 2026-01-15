@@ -3,6 +3,8 @@ pragma solidity ^0.8.30;
 
 import {Test, console} from "forge-std/Test.sol";
 import {Campaign} from "../src/Campaign.sol";
+import {IDRX} from "../src/MockToken/MockIDRX.sol";
+import {IERC20} from "openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract ReentrancyAttacker {
     Campaign public campaign;
@@ -33,6 +35,7 @@ contract ReentrancyAttacker {
         return _campaignAddr;
     }
 
+
     receive() external payable {
         console.log("RECEIVE", msg.value);
         console.log("Reentering withdraw. Attacker balance:", address(this).balance, " Contract balance", address(campaign).balance);
@@ -50,46 +53,37 @@ contract ReentrancyTest is Test {
     Campaign public campaign;
     ReentrancyAttacker public attacker;
     address public funder;
+    IDRX public mockToken;
+
+    uint256 INITIAL_AMOUNT = 10 ether;
+    uint256 CAMPAIGN_TARGET = 2 ether;
+    uint256 DONATE_AMOUNT = 3 ether;
+    uint256 WITHDRAW_AMOUNT = 1 ether;
 
     function setUp() public {
         campaign = new Campaign();
-        console.log("Campaign deployed at:", address(campaign));
         attacker = new ReentrancyAttacker(address(campaign));
-        console.log("Attacker deployed at:", address(attacker));
-
-        // Create a campaign owned by the attacker contract
-        attacker.createMyCampaign("Attack", "Evil", 1 ether);
-        console.log("Campaign to attack:", attacker.campaignAddr());
+        attacker.createMyCampaign("Attack", "Evil", CAMPAIGN_TARGET);
          (, , uint256 balance, , , address owner) = campaign.getCampaignInfo(attacker.campaignAddr());
-        console.log("Attacker's campaign owner:", owner);
-
-        // fund the attacker's campaign from another address
+        mockToken = new IDRX();
         funder = makeAddr("funder");
-        vm.deal(funder, 10 ether);
+        mockToken.mint(funder, INITIAL_AMOUNT);
         vm.startPrank(funder);
-        campaign.donate{value: 10 ether}(attacker.campaignAddr(), 10 ether);
-        console.log("Funder balance after donation:", funder.balance);
-        console.log(address(campaign).balance, "campaign balance funded with 10 ether");
+        IERC20(mockToken).approve(address(campaign), INITIAL_AMOUNT);
+        campaign.donate(attacker.campaignAddr(), INITIAL_AMOUNT, address(mockToken));
         vm.stopPrank();
     }
 
     function testReentrancyIsPrevented() public {
-        // The inner reentrant call reverts (ReentrancyGuard), but because
-        // the Campaign uses a low-level `call` to send funds, the outer
-        // `withdraw` sees `success == false` and reverts with the
-        // `WithdrawalFailed` custom error. Expect that error here.
+        hoax(funder);
         vm.expectRevert(
             abi.encodeWithSelector(
                 Campaign.WithdrawalFailed.selector,
                 address(attacker),
                 "Attack",
-                1 ether
+                WITHDRAW_AMOUNT
             )
         );
-        // Calling attack() will invoke withdraw() from the attacker contract,
-        // which receives funds and then tries to reenter withdraw() in receive().
-        attacker.attack(1 ether);
+        attacker.attack(WITHDRAW_AMOUNT);
     }
-
- 
 }

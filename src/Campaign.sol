@@ -2,6 +2,7 @@
 pragma solidity ^0.8.30;
 
 import {ReentrancyGuard} from "openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IERC20 } from "openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Campaign is ReentrancyGuard {
     struct CampaignStruct {
@@ -20,7 +21,7 @@ contract Campaign is ReentrancyGuard {
 
     error CampaignAlreadyExists(string name);
     error CampaignNotFound(address campaignAddress);
-    error AmountCannotBeLessOrEqualToZero(uint256 amount);
+    error AmountMustBeGreaterThanZero(uint256 amount);
     error OnlyOwnerCanWithdraw(address caller);
     error InsufficientBalance(uint256 requested, uint256 available);
     error WithdrawalFailed(address to, string campaignName, uint256 amount);
@@ -49,8 +50,18 @@ contract Campaign is ReentrancyGuard {
     }
 
     function donate(address to, uint256 amount) public payable {
-        if(amount <= 0) revert AmountCannotBeLessOrEqualToZero(amount);
+        if(amount <= 0) revert AmountMustBeGreaterThanZero(amount);
         if(_campaigns[to].owner == address(0)) revert CampaignNotFound(to);
+        
+
+        _campaigns[to].balance += amount;
+        emit DonationReceived(to, msg.sender, amount);
+    }
+
+    function donate(address to, uint256 amount, address tokenIn) public {
+        if(amount <= 0) revert AmountMustBeGreaterThanZero(amount);
+        if(_campaigns[to].owner == address(0)) revert CampaignNotFound(to);
+        IERC20(tokenIn).transferFrom(msg.sender, address(this), amount);
         
         _campaigns[to].balance += amount;
         emit DonationReceived(to, msg.sender, amount);
@@ -66,6 +77,17 @@ contract Campaign is ReentrancyGuard {
         
         if(!success) revert WithdrawalFailed(msg.sender, campaign.name, amount);
         else emit FundWithdrawn(campaignAddress, campaign.name, msg.sender, campaign.creatorName, amount);
+    }
+
+    function withdraw(address campaignAddress, uint256 amount, address tokenIn) public nonReentrant{
+        CampaignStruct storage campaign = _campaigns[campaignAddress];
+        if(campaign.owner != msg.sender) revert OnlyOwnerCanWithdraw(msg.sender);
+        if(amount > campaign.balance) revert InsufficientBalance(amount, campaign.balance);
+
+        campaign.balance -= amount;
+        IERC20(tokenIn).transfer(msg.sender, amount);
+
+        emit FundWithdrawn(campaignAddress, campaign.name, msg.sender, campaign.creatorName, amount);   
     }
 
     function getCampaignInfo(address campaignAddress) public view returns (string memory name, string memory creatorName, uint256 balance, uint256 targetAmount, uint256 creationTime, address owner) {
