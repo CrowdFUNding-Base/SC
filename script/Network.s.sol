@@ -15,7 +15,7 @@ contract Network {
         networkConfig["base-sepolia"] = getBaseSepoliaNetworkConfig();
     }
 
-    function getLocalNetworkConfig() public returns(NetworkConfig memory){
+    function getLocalNetworkConfig() public pure returns(NetworkConfig memory){
         return NetworkConfig({
             name: "localhost",
             url: "http://127.0.0.1:8545",
@@ -23,7 +23,7 @@ contract Network {
         });
     }
 
-    function getBaseSepoliaNetworkConfig() public returns(NetworkConfig memory){
+    function getBaseSepoliaNetworkConfig() public pure returns(NetworkConfig memory){
         return NetworkConfig({
             name: "base-sepolia",
             url: "https://base-sepolia.g.alchemy.com/v2/your-api-key",
