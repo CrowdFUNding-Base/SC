@@ -13,13 +13,13 @@ contract CampaignTest is Test {
     address user2;
     IDRX mockToken;
 
-    uint256 INITIAL_AMOUNT = 10 ether;
-    uint256 CAMPAIGN_TARGET = 2 ether;
-    uint256 DONATE_AMOUNT = 4 ether;
-    uint256 USER2_BALANCE = 4 ether;
-    uint256 WITHDRAW_AMOUNT = 2 ether;
-    uint256 DONATE_MULTIPLIER = 5;
-    uint256 ZERO = 0;
+    uint256 constant INITIAL_AMOUNT = 10 ether;
+    uint256 constant CAMPAIGN_TARGET = 2 ether;
+    uint256 constant DONATE_AMOUNT = 4 ether;
+    uint256 constant USER2_BALANCE = 4 ether;
+    uint256 constant WITHDRAW_AMOUNT = 2 ether;
+    uint256 constant DONATE_MULTIPLIER = 5;
+    uint256 constant ZERO = 0;
 
     modifier initCampaign{
         campaignAddress = campaign.createCampaign("Bencana Jawa", "Andi Saputra", CAMPAIGN_TARGET);

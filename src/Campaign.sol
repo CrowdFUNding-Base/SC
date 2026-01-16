@@ -52,8 +52,6 @@ contract Campaign is ReentrancyGuard {
     function donate(address to, uint256 amount) public payable {
         if(amount <= 0) revert AmountMustBeGreaterThanZero(amount);
         if(_campaigns[to].owner == address(0)) revert CampaignNotFound(to);
-        
-
         _campaigns[to].balance += amount;
         emit DonationReceived(to, msg.sender, amount);
     }
@@ -61,10 +59,12 @@ contract Campaign is ReentrancyGuard {
     function donate(address to, uint256 amount, address tokenIn) public {
         if(amount <= 0) revert AmountMustBeGreaterThanZero(amount);
         if(_campaigns[to].owner == address(0)) revert CampaignNotFound(to);
-        IERC20(tokenIn).transferFrom(msg.sender, address(this), amount);
-        
-        _campaigns[to].balance += amount;
-        emit DonationReceived(to, msg.sender, amount);
+        bool success = IERC20(tokenIn).transferFrom(msg.sender, address(this), amount);
+        if(!success) revert WithdrawalFailed(msg.sender, _campaigns[to].name, amount);
+        else{
+            _campaigns[to].balance += amount;
+            emit DonationReceived(to, msg.sender, amount);
+        }   
     }
 
     function withdraw(address campaignAddress, uint256 amount) public nonReentrant{
@@ -74,7 +74,6 @@ contract Campaign is ReentrancyGuard {
 
         campaign.balance -= amount;
         (bool success,) = msg.sender.call{value: amount}("");
-        
         if(!success) revert WithdrawalFailed(msg.sender, campaign.name, amount);
         else emit FundWithdrawn(campaignAddress, campaign.name, msg.sender, campaign.creatorName, amount);
     }
@@ -85,9 +84,9 @@ contract Campaign is ReentrancyGuard {
         if(amount > campaign.balance) revert InsufficientBalance(amount, campaign.balance);
 
         campaign.balance -= amount;
-        IERC20(tokenIn).transfer(msg.sender, amount);
-
-        emit FundWithdrawn(campaignAddress, campaign.name, msg.sender, campaign.creatorName, amount);   
+        bool success = IERC20(tokenIn).transfer(msg.sender, amount);
+        if(!success) revert WithdrawalFailed(msg.sender, campaign.name, amount);
+        else emit FundWithdrawn(campaignAddress, campaign.name, msg.sender, campaign.creatorName, amount);   
     }
 
     function getCampaignInfo(address campaignAddress) public view returns (string memory name, string memory creatorName, uint256 balance, uint256 targetAmount, uint256 creationTime, address owner) {

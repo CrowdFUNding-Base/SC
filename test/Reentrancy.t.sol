@@ -55,10 +55,10 @@ contract ReentrancyTest is Test {
     address public funder;
     IDRX public mockToken;
 
-    uint256 INITIAL_AMOUNT = 10 ether;
-    uint256 CAMPAIGN_TARGET = 2 ether;
-    uint256 DONATE_AMOUNT = 3 ether;
-    uint256 WITHDRAW_AMOUNT = 1 ether;
+    uint256 constant INITIAL_AMOUNT = 10 ether;
+    uint256 constant CAMPAIGN_TARGET = 2 ether;
+    uint256 constant DONATE_AMOUNT = 3 ether;
+    uint256 constant WITHDRAW_AMOUNT = 1 ether;
 
     function setUp() public {
         campaign = new Campaign();
