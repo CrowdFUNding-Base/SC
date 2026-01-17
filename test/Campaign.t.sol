@@ -134,7 +134,7 @@ contract CampaignTest is Test {
         console.log("Withdrawal successful, campaign balance:", balance);
     }
 
-    function testWithdrawLessBalnace() public initCampaignAndUser  {
+    function testWithdrawLessBalance() public initCampaignAndUser  {
         campaign.donate{value: DONATE_AMOUNT}(campaignId, DONATE_AMOUNT);
         vm.expectRevert(abi.encodeWithSelector(Campaign.InsufficientBalance.selector, WITHDRAW_AMOUNT + DONATE_AMOUNT, DONATE_AMOUNT));
         vm.prank(user);
