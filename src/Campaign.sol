@@ -2,7 +2,7 @@
 pragma solidity ^0.8.30;
 
 import {ReentrancyGuard} from "openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {IERC20 } from "openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Campaign is ReentrancyGuard {
     struct CampaignStruct {
@@ -13,14 +13,15 @@ contract Campaign is ReentrancyGuard {
         uint256 creationTime;
         address owner;
     }
-    mapping(address => CampaignStruct) private _campaigns;
+    mapping(uint256 => CampaignStruct) private _campaigns;
+    uint256 private _currentTokenId = 0;
 
-    event CampaignCreated(address indexed campaignAddress, string name, string creatorName, address indexed owner, uint256 creationTime, uint256 targetAmount);
-    event DonationReceived(address indexed campaignAddress, address indexed donor, uint256 amount);
-    event FundWithdrawn(address indexed campaignAddress, string name, address indexed owner, string creatorName, uint256 amount);
+    event CampaignCreated(uint256 indexed campaignId, string name, string creatorName, address indexed owner, uint256 creationTime, uint256 targetAmount);
+    event DonationReceived(uint256 indexed campaignId, address indexed donor, uint256 amount);
+    event FundWithdrawn(uint256 indexed campaignId, string name, address indexed owner, string creatorName, uint256 amount);
 
     error CampaignAlreadyExists(string name);
-    error CampaignNotFound(address campaignAddress);
+    error CampaignNotFound(uint256 campaignId);
     error AmountMustBeGreaterThanZero(uint256 amount);
     error OnlyOwnerCanWithdraw(address caller);
     error InsufficientBalance(uint256 requested, uint256 available);
@@ -28,16 +29,15 @@ contract Campaign is ReentrancyGuard {
 
     constructor() {}
 
-    function createCampaign(string memory name, string memory creatorName, uint256 targetAmount) public returns (address) {
+    function createCampaign(string memory name, string memory creatorName, uint256 targetAmount) public returns (uint256) {
         // check if campaign with the same name already exists
-        address campaignAddress = address(
-            uint160(uint256(keccak256(abi.encodePacked(name))))
-        );
-        if(bytes(_campaigns[campaignAddress].name).length != 0) {
+        uint256 campaignId = _currentTokenId;
+        _currentTokenId++;
+        if(bytes(_campaigns[campaignId].name).length != 0) {
             revert CampaignAlreadyExists(name);
         }
 
-        _campaigns[campaignAddress] = CampaignStruct({
+        _campaigns[campaignId] = CampaignStruct({
             name: name,
             creatorName: creatorName,   
             balance: 0,
@@ -45,53 +45,53 @@ contract Campaign is ReentrancyGuard {
             creationTime: block.timestamp,
             targetAmount: targetAmount
         });
-        emit CampaignCreated(campaignAddress, name, creatorName, msg.sender, block.timestamp, targetAmount);
-        return campaignAddress;
+        emit CampaignCreated(campaignId, name, creatorName, msg.sender, block.timestamp, targetAmount);
+        return campaignId;
     }
 
-    function donate(address to, uint256 amount) public payable {
+    function donate(uint256 campaignId, uint256 amount) public payable {
         if(amount <= 0) revert AmountMustBeGreaterThanZero(amount);
-        if(_campaigns[to].owner == address(0)) revert CampaignNotFound(to);
-        _campaigns[to].balance += amount;
-        emit DonationReceived(to, msg.sender, amount);
+        if(_campaigns[campaignId].owner == address(0)) revert CampaignNotFound(campaignId);
+        _campaigns[campaignId].balance += amount;
+        emit DonationReceived(campaignId, msg.sender, amount);
     }
 
-    function donate(address to, uint256 amount, address tokenIn) public {
+    function donate(uint256 campaignId, uint256 amount, address tokenIn) public {
         if(amount <= 0) revert AmountMustBeGreaterThanZero(amount);
-        if(_campaigns[to].owner == address(0)) revert CampaignNotFound(to);
+        if(_campaigns[campaignId].owner == address(0)) revert CampaignNotFound(campaignId);
         bool success = IERC20(tokenIn).transferFrom(msg.sender, address(this), amount);
-        if(!success) revert WithdrawalFailed(msg.sender, _campaigns[to].name, amount);
+        if(!success) revert WithdrawalFailed(msg.sender, _campaigns[campaignId].name, amount);
         else{
-            _campaigns[to].balance += amount;
-            emit DonationReceived(to, msg.sender, amount);
+            _campaigns[campaignId].balance += amount;
+            emit DonationReceived(campaignId, msg.sender, amount);
         }   
     }
 
-    function withdraw(address campaignAddress, uint256 amount) public nonReentrant{
-        CampaignStruct storage campaign = _campaigns[campaignAddress];
+    function withdraw(uint256 campaignId, uint256 amount) public nonReentrant{
+        CampaignStruct storage campaign = _campaigns[campaignId];
         if(campaign.owner != msg.sender) revert OnlyOwnerCanWithdraw(msg.sender);
         if(amount > campaign.balance) revert InsufficientBalance(amount, campaign.balance);
 
         campaign.balance -= amount;
         (bool success,) = msg.sender.call{value: amount}("");
         if(!success) revert WithdrawalFailed(msg.sender, campaign.name, amount);
-        else emit FundWithdrawn(campaignAddress, campaign.name, msg.sender, campaign.creatorName, amount);
+        else emit FundWithdrawn(campaignId, campaign.name, msg.sender, campaign.creatorName, amount);
     }
 
-    function withdraw(address campaignAddress, uint256 amount, address tokenIn) public nonReentrant{
-        CampaignStruct storage campaign = _campaigns[campaignAddress];
+    function withdraw(uint256 campaignId, uint256 amount, address tokenIn) public nonReentrant{
+        CampaignStruct storage campaign = _campaigns[campaignId];
         if(campaign.owner != msg.sender) revert OnlyOwnerCanWithdraw(msg.sender);
         if(amount > campaign.balance) revert InsufficientBalance(amount, campaign.balance);
 
         campaign.balance -= amount;
         bool success = IERC20(tokenIn).transfer(msg.sender, amount);
         if(!success) revert WithdrawalFailed(msg.sender, campaign.name, amount);
-        else emit FundWithdrawn(campaignAddress, campaign.name, msg.sender, campaign.creatorName, amount);   
+        else emit FundWithdrawn(campaignId, campaign.name, msg.sender, campaign.creatorName, amount);   
     }
 
-    function getCampaignInfo(address campaignAddress) public view returns (string memory name, string memory creatorName, uint256 balance, uint256 targetAmount, uint256 creationTime, address owner) {
-        CampaignStruct storage campaign = _campaigns[campaignAddress];
-        if(campaign.owner == address(0)) revert CampaignNotFound(campaignAddress);
+    function getCampaignInfo(uint256 campaignId) public view returns (string memory name, string memory creatorName, uint256 balance, uint256 targetAmount, uint256 creationTime, address owner) {
+        CampaignStruct storage campaign = _campaigns[campaignId];
+        if(campaign.owner == address(0)) revert CampaignNotFound(campaignId);
         return (campaign.name, campaign.creatorName, campaign.balance, campaign.targetAmount, campaign.creationTime, campaign.owner);
     }
 }
