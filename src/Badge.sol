@@ -10,7 +10,6 @@ contract Badge is ERC721, Ownable {
         string description;
     }
     uint256 private _currentTokenId = 0;
-    // mapping from tokenId => BadgeInfo
     mapping(uint256 => BadgeInfo) private _badgeInfos;
 
     event BadgeMinted(uint256 indexed tokenId, address indexed to, string name);

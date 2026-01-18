@@ -29,8 +29,11 @@ contract Campaign is ReentrancyGuard {
 
     constructor() {}
 
+    /// @notice Create a new campaign
+    /// @param name The name of the campaign
+    /// @param creatorName The name of the creator
+    /// @param targetAmount The target amount of native currency to raise
     function createCampaign(string memory name, string memory creatorName, uint256 targetAmount) public returns (uint256) {
-        // check if campaign with the same name already exists
         uint256 campaignId = _currentTokenId;
         _currentTokenId++;
         if(bytes(_campaigns[campaignId].name).length != 0) {
@@ -49,6 +52,9 @@ contract Campaign is ReentrancyGuard {
         return campaignId;
     }
 
+    /// @notice Donate to a campaign with native currency
+    /// @param campaignId The ID of the campaign to donate to
+    /// @param amount The amount of native currency to donate
     function donate(uint256 campaignId, uint256 amount) public payable {
         if(amount <= 0) revert AmountMustBeGreaterThanZero(amount);
         if(_campaigns[campaignId].owner == address(0)) revert CampaignNotFound(campaignId);
@@ -56,6 +62,10 @@ contract Campaign is ReentrancyGuard {
         emit DonationReceived(campaignId, msg.sender, amount);
     }
 
+    /// @notice Donate to a campaign with ERC20 token
+    /// @param campaignId The ID of the campaign to donate to
+    /// @param amount The amount of ERC20 token to donate
+    /// @param tokenIn The address of the ERC20 token
     function donate(uint256 campaignId, uint256 amount, address tokenIn) public {
         if(amount <= 0) revert AmountMustBeGreaterThanZero(amount);
         if(_campaigns[campaignId].owner == address(0)) revert CampaignNotFound(campaignId);
@@ -67,6 +77,9 @@ contract Campaign is ReentrancyGuard {
         }   
     }
 
+    /// @notice Withdraw funds from a campaign
+    /// @param campaignId The ID of the campaign to withdraw from
+    /// @param amount The amount of native currency to withdraw 
     function withdraw(uint256 campaignId, uint256 amount) public nonReentrant{
         CampaignStruct storage campaign = _campaigns[campaignId];
         if(campaign.owner != msg.sender) revert OnlyOwnerCanWithdraw(msg.sender);
@@ -78,6 +91,10 @@ contract Campaign is ReentrancyGuard {
         else emit FundWithdrawn(campaignId, campaign.name, msg.sender, campaign.creatorName, amount);
     }
 
+    /// @notice Withdraw ERC20 tokens from a campaign
+    /// @param campaignId The ID of the campaign to withdraw from
+    /// @param amount The amount of ERC20 token to withdraw
+    /// @param tokenIn The address of the ERC20 token
     function withdraw(uint256 campaignId, uint256 amount, address tokenIn) public nonReentrant{
         CampaignStruct storage campaign = _campaigns[campaignId];
         if(campaign.owner != msg.sender) revert OnlyOwnerCanWithdraw(msg.sender);
@@ -89,6 +106,14 @@ contract Campaign is ReentrancyGuard {
         else emit FundWithdrawn(campaignId, campaign.name, msg.sender, campaign.creatorName, amount);   
     }
 
+    /// @notice Get information about a campaign
+    /// @param campaignId The ID of the campaign to get information about
+    /// @return name The name of the campaign
+    /// @return creatorName The name of the creator
+    /// @return balance The balance of the campaign
+    /// @return targetAmount The target amount of native currency to raise
+    /// @return creationTime The creation time of the campaign
+    /// @return owner The owner of the campaign
     function getCampaignInfo(uint256 campaignId) public view returns (string memory name, string memory creatorName, uint256 balance, uint256 targetAmount, uint256 creationTime, address owner) {
         CampaignStruct storage campaign = _campaigns[campaignId];
         if(campaign.owner == address(0)) revert CampaignNotFound(campaignId);
