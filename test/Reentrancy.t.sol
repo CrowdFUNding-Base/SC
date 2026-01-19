@@ -5,6 +5,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {Campaign} from "../src/Campaign.sol";
 import {IDRX} from "../src/MockToken/MockIDRX.sol";
 import {IERC20} from "openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {MockSwap} from "../src/MockSwap.sol";
 
 contract ReentrancyAttacker {
     Campaign public campaign;
@@ -16,7 +17,10 @@ contract ReentrancyAttacker {
         campaign = Campaign(_campaign);
     }
 
-    function createMyCampaign(string memory name, string memory creator, uint256 target, address tokenIn) external returns (uint256) {
+    function createMyCampaign(string memory name, string memory creator, uint256 target, address tokenIn)
+        external
+        returns (uint256)
+    {
         console.log("Creating attacker's campaign... using contract", address(campaign));
         uint256 id = campaign.createCampaign(name, creator, target);
         console.log("Attacker's campaign created at:", id);
@@ -28,32 +32,59 @@ contract ReentrancyAttacker {
     function attack(uint256 amount) external {
         // call withdraw from this contract (msg.sender inside Campaign will be this contract)
         console.log("Attacker contract attacking campaign at:", _campaignId);
-        if(_tokenIn != address(0)){
-            console.log("Starting attack. Attacker balance:", IERC20(_tokenIn).balanceOf(address(this)), " Contract balance", IERC20(_tokenIn).balanceOf(address(campaign)));
-            IERC20(_tokenIn).approve(address(campaign), amount);    
+        if (_tokenIn != address(0)) {
+            console.log(
+                "Starting attack. Attacker balance:",
+                IERC20(_tokenIn).balanceOf(address(this)),
+                " Contract balance",
+                IERC20(_tokenIn).balanceOf(address(campaign))
+            );
+            IERC20(_tokenIn).approve(address(campaign), amount);
             campaign.withdraw(_campaignId, amount, _tokenIn);
-            console.log("Attack finished. Attacker balance:", IERC20(_tokenIn).balanceOf(address(this)), " Contract balance", IERC20(_tokenIn).balanceOf(address(campaign)));
-        }
-        else{
-            console.log("Starting attack. Attacker balance:", address(this).balance, " Contract balance", address(campaign).balance);
+            console.log(
+                "Attack finished. Attacker balance:",
+                IERC20(_tokenIn).balanceOf(address(this)),
+                " Contract balance",
+                IERC20(_tokenIn).balanceOf(address(campaign))
+            );
+        } else {
+            console.log(
+                "Starting attack. Attacker balance:",
+                address(this).balance,
+                " Contract balance",
+                address(campaign).balance
+            );
             campaign.withdraw(_campaignId, amount);
-            console.log("Attack finished. Attacker balance:", address(this).balance, " Contract balance", address(campaign).balance);
+            console.log(
+                "Attack finished. Attacker balance:",
+                address(this).balance,
+                " Contract balance",
+                address(campaign).balance
+            );
         }
-       
     }
 
     function campaignId() external view returns (uint256) {
         return _campaignId;
     }
 
-
     receive() external payable {
         console.log("ENTERING RECEIVE");
         console.log("RECEIVE", msg.value);
-        console.log("Reentering withdraw. Attacker balance:", address(this).balance, " Contract balance", address(campaign).balance);
-        if(address(campaign).balance >= msg.value) {
+        console.log(
+            "Reentering withdraw. Attacker balance:",
+            address(this).balance,
+            " Contract balance",
+            address(campaign).balance
+        );
+        if (address(campaign).balance >= msg.value) {
             campaign.withdraw(_campaignId, msg.value);
-            console.log("Reentered withdraw. Attacker balance:", address(this).balance, " Contract balance", address(campaign).balance);
+            console.log(
+                "Reentered withdraw. Attacker balance:",
+                address(this).balance,
+                " Contract balance",
+                address(campaign).balance
+            );
         }
     }
 }
@@ -63,16 +94,28 @@ contract ReentrancyTest is Test {
     ReentrancyAttacker public attacker;
     address public funder;
     uint256 public campaignId;
-    IDRX public mockToken;
+    IDRX public mockIdrx;
+    MockSwap public mockSwap;
 
     uint256 constant INITIAL_AMOUNT = 10 ether;
     uint256 constant CAMPAIGN_TARGET = 5 ether;
     uint256 constant DONATE_AMOUNT = 5 ether;
     uint256 constant WITHDRAW_AMOUNT = 1 ether;
 
+    // 1 ETH = 48,000,000 IDRX (IDRX has 2 decimals)
+    uint256 constant ETH_TO_IDRX = 4_800_000_000;
+
     function setUp() public {
-        campaign = new Campaign();
-        mockToken = new IDRX();
+        mockIdrx = new IDRX();
+        mockSwap = new MockSwap();
+
+        // Add IDRX to mockSwap with ETH rate
+        mockSwap.addToken(address(mockIdrx), ETH_TO_IDRX, mockIdrx.decimals());
+
+        // Mint liquidity to mockSwap
+        mockIdrx.mint(address(mockSwap), 1_000_000_000 * 10 ** mockIdrx.decimals());
+
+        campaign = new Campaign(address(mockSwap), address(mockIdrx));
         funder = makeAddr("funder");
         vm.deal(funder, INITIAL_AMOUNT);
         attacker = new ReentrancyAttacker(address(campaign));
@@ -86,12 +129,7 @@ contract ReentrancyTest is Test {
         campaign.donate{value: DONATE_AMOUNT}(campaignId, DONATE_AMOUNT);
         console.log("CAMPAIGN BALANCE", address(campaign).balance);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Campaign.WithdrawalFailed.selector,
-                address(attacker),
-                "Attack",
-                WITHDRAW_AMOUNT
-            )
+            abi.encodeWithSelector(Campaign.WithdrawalFailed.selector, address(attacker), "Attack", WITHDRAW_AMOUNT)
         );
         attacker.attack(WITHDRAW_AMOUNT);
         vm.stopPrank();

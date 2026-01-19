@@ -13,6 +13,7 @@
 - [Why Blockchain?](#-why-blockchain)
 - [Why Base?](#-why-base)
 - [Why IDRX?](#-why-idrx)
+- [Auto-Swap: Global Donations Made Easy](#-auto-swap-global-donations-made-easy)
 - [Smart Contract Architecture](#-smart-contract-architecture)
 - [Getting Started](#-getting-started)
 - [Environment Setup](#%EF%B8%8F-environment-setup)
@@ -107,26 +108,79 @@ By supporting **IDRX alongside USDC**, we enable both **local Indonesian donors*
 
 ---
 
+## 🔄 Auto-Swap: Global Donations Made Easy
+
+One of the most powerful features of CrowdFUNding is the **automatic token swap** functionality. This allows donors from anywhere in the world to contribute using their preferred currency, while campaigns receive funds in a unified format.
+
+### 🌐 How It Works
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Donor sends   │────▶│   MockSwap       │────▶│   Campaign      │
+│   USDC/other    │     │   auto-converts  │     │   receives IDRX │
+│   tokens        │     │   to IDRX        │     │                 │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+```
+
+1. **Donor donates** with any supported token (e.g., USDC)
+2. **Smart contract automatically swaps** the token to IDRX via MockSwap
+3. **Campaign receives** the equivalent amount in IDRX
+4. **Campaign owner withdraws** funds in IDRX
+
+### 💡 Benefits
+
+| Feature | Benefit |
+|---------|----------|
+| **Multi-currency support** | Accept donations in USDC, IDRX, and more |
+| **Automatic conversion** | No manual token swaps needed |
+| **Unified accounting** | All campaign balances stored in IDRX |
+| **Global accessibility** | International donors can use familiar tokens |
+| **Transparent rates** | Exchange rates are on-chain and verifiable |
+
+### 🌍 Global Reach
+
+This feature is designed to **maximize global participation**:
+
+- **International donors** can contribute in USDC (widely used globally)
+- **Indonesian donors** can contribute directly in IDRX
+- **Campaign creators** receive all funds in IDRX for easy local withdrawal
+- **No forex hassles** — the smart contract handles everything automatically
+
+### 📊 Exchange Rates (Testnet)
+
+| Token | Rate per ETH | Decimals |
+|-------|--------------|----------|
+| USDC  | 3,300 USDC   | 6        |
+| IDRX  | 54,000,000 IDRX | 2     |
+
+> 💡 **Example**: A donation of 100 USDC would be automatically converted to approximately 1,636,363 IDRX (163,636.36 IDRX in display units).
+
+---
+
 ## 🏗 Smart Contract Architecture
 
-This project consists of **4 main smart contracts**:
+This project consists of **5 main smart contracts**:
 
 ### 1. **Campaign.sol** - Core Crowdfunding Contract
 
-The heart of the platform. Manages all crowdfunding campaigns.
+The heart of the platform. Manages all crowdfunding campaigns with integrated auto-swap functionality.
 
 | Function            | Description                                                             |
 | ------------------- | ----------------------------------------------------------------------- |
 | `createCampaign()`  | Create a new fundraising campaign with name, creator, and target amount |
-| `donate()`          | Donate native currency or ERC20 tokens to a campaign                    |
-| `withdraw()`        | Campaign owners can withdraw collected funds                            |
+| `donate(uint256, uint256)` | Donate native currency to a campaign                             |
+| `donate(uint256, uint256, address)` | Donate ERC20 tokens (auto-swaps to IDRX if needed)    |
+| `withdraw(uint256, uint256)` | Withdraw native currency from a campaign                     |
+| `withdraw(uint256, uint256, address)` | Withdraw ERC20 tokens (IDRX) from a campaign        |
 | `getCampaignInfo()` | Retrieve campaign details (name, balance, target, etc.)                 |
 
 **Features:**
 
-- Supports both native currency and ERC20 token donations
-- ReentrancyGuard protection for secure withdrawals
-- Event emissions for donation tracking
+- 🔄 **Auto-swap integration** — Donations in non-IDRX tokens are automatically converted
+- 💰 Supports both native currency and ERC20 token donations
+- 🔒 ReentrancyGuard protection for secure withdrawals
+- 📡 Event emissions for donation tracking
+- 🏦 Unified storage in IDRX for consistent accounting
 
 ### 2. **Badge.sol** - Achievement NFT Contract
 
@@ -163,7 +217,25 @@ A mock ERC20 token simulating USDC (USD Coin).
 | Symbol   | USDC  |
 | Decimals | 6     |
 
-> ⚠️ **Note**: The Mock IDRX and Mock USDC tokens are used **only for simulation and testing purposes**. In production, you would integrate with the actual IDRX and USDC token contracts.
+### 5. **MockSwap.sol** - Token Swap Contract
+
+Handles automatic token conversions for multi-currency donations.
+
+| Function       | Description                                           |
+| -------------- | ----------------------------------------------------- |
+| `addToken()`   | Register a new token with its ETH exchange rate       |
+| `swap()`       | Swap tokens from one type to another                  |
+| `getQuote()`   | Get expected output amount for a swap (view function) |
+| `getTokenInfo()` | Retrieve token details (address, decimals, rate)    |
+
+**How the Swap Works:**
+
+1. Normalizes input amount to 18 decimals
+2. Converts to ETH equivalent using input token's rate
+3. Converts ETH to output token using output token's rate
+4. Denormalizes to output token's decimals
+
+> ⚠️ **Note**: The Mock tokens and MockSwap are used **only for simulation and testing purposes**. In production, you would integrate with actual token contracts and a real DEX (like Uniswap or Aerodrome).
 
 ---
 
@@ -390,17 +462,19 @@ All contracts are deployed on **Base Sepolia Testnet**:
 
 | Contract      | Address                                      |
 | ------------- | -------------------------------------------- |
-| **Mock IDRX** | `0x4a49f09fAfA1c493E5FC12dA89Ae8E0193E7e8AE` |
-| **Mock USDC** | `0xCCEEf0548658839637E5805E39bd52807792C4B9` |
-| **Campaign**  | `0x59278eCD1805aB880A7fC83840d2d36DCc6697c9` |
-| **Badge**     | `0x25076a7eaB3ca6295B3FCF6A026C2cf94BaF24e4` |
+| **Mock IDRX** | `0xAC90f99347766F9b3b425Ca54248150e2C9D1Bde` |
+| **Mock USDC** | `0xC85840d4754aC06cEE7138eC0a664317921B6B5f` |
+| **MockSwap**  | `0x3d03aa45D45d7ed60687927D7fD6740e4D445278` |
+| **Campaign**  | `0x48FAdb5CA6B3892BfAaEa8500673F7F982828f3D` |
+| **Badge**     | `0x151dab237442706031D61810d6Cb053DCbDa2b8E` |
 
 ### View on Basescan
 
-- [Mock IDRX](https://sepolia.basescan.org/address/0x4a49f09fAfA1c493E5FC12dA89Ae8E0193E7e8AE)
-- [Mock USDC](https://sepolia.basescan.org/address/0xCCEEf0548658839637E5805E39bd52807792C4B9)
-- [Campaign](https://sepolia.basescan.org/address/0x59278eCD1805aB880A7fC83840d2d36DCc6697c9)
-- [Badge](https://sepolia.basescan.org/address/0x25076a7eaB3ca6295B3FCF6A026C2cf94BaF24e4)
+- [Mock IDRX](https://sepolia.basescan.org/address/0xAC90f99347766F9b3b425Ca54248150e2C9D1Bde)
+- [Mock USDC](https://sepolia.basescan.org/address/0xC85840d4754aC06cEE7138eC0a664317921B6B5f)
+- [MockSwap](https://sepolia.basescan.org/address/0x3d03aa45D45d7ed60687927D7fD6740e4D445278)
+- [Campaign](https://sepolia.basescan.org/address/0x48FAdb5CA6B3892BfAaEa8500673F7F982828f3D)
+- [Badge](https://sepolia.basescan.org/address/0x151dab237442706031D61810d6Cb053DCbDa2b8E)
 
 ---
 

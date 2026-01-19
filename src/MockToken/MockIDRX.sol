@@ -23,13 +23,6 @@ contract IDRX is ERC20{
         return 2;
     }
     /*
-    * @dev getBalance
-    * @return uint256
-    */
-    function getBalance(address _address) public view returns (uint256) {
-        return balanceOf(_address);
-    }
-    /*
     * @dev mint
     * @param _to address
     * @param _amount uint256

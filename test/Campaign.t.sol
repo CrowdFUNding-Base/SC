@@ -4,6 +4,7 @@ pragma solidity ^0.8.30;
 import {Test, console} from "forge-std/Test.sol";
 import {Campaign} from "../src/Campaign.sol";
 import {IDRX} from "../src/MockToken/MockIDRX.sol";
+import {MockSwap} from "../src/MockSwap.sol";
 import {IERC20} from "openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract CampaignTest is Test {
@@ -11,6 +12,7 @@ contract CampaignTest is Test {
     uint256 campaignId;
     address user;
     address user2;
+    MockSwap mockSwap;
     IDRX mockToken;
 
     uint256 constant INITIAL_AMOUNT = 10 ether;
@@ -21,62 +23,85 @@ contract CampaignTest is Test {
     uint256 constant DONATE_MULTIPLIER = 5;
     uint256 constant ZERO = 0;
 
-    modifier initCampaign{
+    // 1 ETH = 3300 USDC (6 decimals) = 3300 * 10^6 = 3_300_000_000
+    uint256 constant ETH_TO_USDC = 3_300_000_000;
+    // 1 ETH = 54,000,000 IDRX (2 decimals) = 54_000_000 * 10^2 = 5_400_000_000
+    uint256 constant ETH_TO_IDRX = 5_400_000_000;
+
+    modifier initCampaign() {
         campaignId = campaign.createCampaign("Bencana Jawa", "Andi Saputra", CAMPAIGN_TARGET);
         _;
     }
 
-    modifier initCampaignAndUser{
+    modifier initCampaignAndUser() {
         hoax(user, INITIAL_AMOUNT);
         campaignId = campaign.createCampaign("Bencana Jawa", "Andi Saputra", CAMPAIGN_TARGET);
         _;
     }
 
     function setUp() public {
-        campaign = new Campaign();        
+        // Deploy contracts
+        mockSwap = new MockSwap();
+        mockToken = new IDRX();
+
+        // Add mockToken (IDRX) to mockSwap with ETH rate
+        // IDRX has 2 decimals, so 1 ETH = 48M IDRX = 48_000_000 * 10^2
+        mockSwap.addToken(address(mockToken), ETH_TO_IDRX, mockToken.decimals());
+
+        // Mint liquidity to mockSwap so swaps can work
+        mockToken.mint(address(mockSwap), 1_000_000_000 * 10 ** mockToken.decimals());
+
+        // Deploy Campaign with mockSwap and mockToken as storage token
+        campaign = new Campaign(address(mockSwap), address(mockToken));
+
+        // Setup users
         user = makeAddr("user");
-        user2 = makeAddr("user2");  
-        mockToken = new IDRX();     
+        user2 = makeAddr("user2");
         mockToken.mint(user, INITIAL_AMOUNT);
         mockToken.mint(user2, USER2_BALANCE);
     }
 
-    function testCreateCampaign() public initCampaign() {
-        (string memory name, string memory creatorName, uint256 balance, uint256 targetAmount, uint256 creationTime, address owner) = campaign.getCampaignInfo(campaignId);
+    function testCreateCampaign() public initCampaign {
+        (
+            string memory name,
+            string memory creatorName,
+            uint256 balance,
+            uint256 targetAmount,
+            uint256 creationTime,
+            address owner
+        ) = campaign.getCampaignInfo(campaignId);
         assertEq(name, "Bencana Jawa");
         assertEq(creatorName, "Andi Saputra");
         assertEq(balance, 0);
         console.log("Campaign created at address:", campaignId);
     }
 
-    function testDonate() public initCampaignAndUser  {
+    function testDonate() public initCampaignAndUser {
         campaign.donate{value: DONATE_AMOUNT}(campaignId, DONATE_AMOUNT);
-        (, , uint256 balance, , , ) = campaign.getCampaignInfo(campaignId);
+        (,, uint256 balance,,,) = campaign.getCampaignInfo(campaignId);
         assertEq(balance, DONATE_AMOUNT);
         assertEq(user2.balance, USER2_BALANCE - DONATE_AMOUNT);
         console.log("Donation successful, campaign balance:", balance);
     }
 
-    
-    function testDonateERC20() public initCampaignAndUser  {
-        console.log("BALANCE USER 2", mockToken.getBalance(user2));
-        console.log("BALANCE USER", mockToken.getBalance(user));
-        
+    function testDonateERC20() public initCampaignAndUser {
+        console.log("BALANCE USER 2", mockToken.balanceOf(user2));
+        console.log("BALANCE USER", mockToken.balanceOf(user));
+
         // User2 must approve the campaign contract to spend their tokens FIRST
         vm.prank(user2);
         mockToken.approve(address(campaign), DONATE_AMOUNT);
-        
+
         // Now user2 can donate
         vm.prank(user2);
         campaign.donate(campaignId, DONATE_AMOUNT, address(mockToken));
-        
-        (, , uint256 balance, , , ) = campaign.getCampaignInfo(campaignId);
+
+        (,, uint256 balance,,,) = campaign.getCampaignInfo(campaignId);
         assertEq(balance, DONATE_AMOUNT);
         // Check token balance decreased, not ETH balance
-        assertEq(mockToken.getBalance(user2), USER2_BALANCE - DONATE_AMOUNT);
+        assertEq(mockToken.balanceOf(user2), USER2_BALANCE - DONATE_AMOUNT);
         console.log("Donation successful, campaign balance:", balance);
     }
-
 
     function testDonateMustBeGreaterThanZero() public initCampaignAndUser {
         vm.expectRevert(abi.encodeWithSelector(Campaign.AmountMustBeGreaterThanZero.selector, ZERO));
@@ -90,13 +115,13 @@ contract CampaignTest is Test {
         campaign.donate(campaignId, ZERO, address(mockToken));
     }
 
-    function testDonateOnlyOnAvailableCampaign () public initCampaignAndUser  {
+    function testDonateOnlyOnAvailableCampaign() public initCampaignAndUser {
         campaignId = 1;
         vm.expectRevert(abi.encodeWithSelector(Campaign.CampaignNotFound.selector, campaignId));
         campaign.donate{value: DONATE_AMOUNT}(campaignId, DONATE_AMOUNT);
     }
 
-    function testDonateERC20OnlyOnAvailableCampaign () public initCampaignAndUser  {
+    function testDonateERC20OnlyOnAvailableCampaign() public initCampaignAndUser {
         campaignId = 1;
         hoax(user2);
         IERC20(mockToken).approve(address(campaign), DONATE_AMOUNT);
@@ -105,12 +130,12 @@ contract CampaignTest is Test {
         campaign.donate(campaignId, DONATE_AMOUNT, address(mockToken));
     }
 
-    function testWithdraw() public initCampaignAndUser  {
-        hoax(user2, USER2_BALANCE); 
+    function testWithdraw() public initCampaignAndUser {
+        hoax(user2, USER2_BALANCE);
         campaign.donate{value: DONATE_AMOUNT}(campaignId, DONATE_AMOUNT);
         vm.startPrank(user);
         campaign.withdraw(campaignId, WITHDRAW_AMOUNT);
-        (, , uint256 balance, , , ) = campaign.getCampaignInfo(campaignId);
+        (,, uint256 balance,,,) = campaign.getCampaignInfo(campaignId);
         console.log("No ", balance, user2.balance, user.balance);
         assertEq(balance, DONATE_AMOUNT - WITHDRAW_AMOUNT);
         assertEq(user2.balance, USER2_BALANCE - DONATE_AMOUNT);
@@ -119,14 +144,14 @@ contract CampaignTest is Test {
         vm.stopPrank();
     }
 
-    function testWithdrawERC20() public initCampaignAndUser  {
+    function testWithdrawERC20() public initCampaignAndUser {
         hoax(user2, USER2_BALANCE);
         IERC20(mockToken).approve(address(campaign), DONATE_AMOUNT);
         hoax(user2);
         campaign.donate(campaignId, DONATE_AMOUNT, address(mockToken));
         hoax(user);
         campaign.withdraw(campaignId, WITHDRAW_AMOUNT, address(mockToken));
-        (, , uint256 balance, , , ) = campaign.getCampaignInfo(campaignId);
+        (,, uint256 balance,,,) = campaign.getCampaignInfo(campaignId);
         console.log("WITH ", balance, user2.balance, user.balance);
         assertEq(balance, DONATE_AMOUNT - WITHDRAW_AMOUNT);
         assertEq(mockToken.balanceOf(user2), USER2_BALANCE - DONATE_AMOUNT);
@@ -134,25 +159,33 @@ contract CampaignTest is Test {
         console.log("Withdrawal successful, campaign balance:", balance);
     }
 
-    function testWithdrawLessBalance() public initCampaignAndUser  {
+    function testWithdrawLessBalance() public initCampaignAndUser {
         campaign.donate{value: DONATE_AMOUNT}(campaignId, DONATE_AMOUNT);
-        vm.expectRevert(abi.encodeWithSelector(Campaign.InsufficientBalance.selector, WITHDRAW_AMOUNT + DONATE_AMOUNT, DONATE_AMOUNT));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Campaign.InsufficientBalance.selector, WITHDRAW_AMOUNT + DONATE_AMOUNT, DONATE_AMOUNT
+            )
+        );
         vm.prank(user);
         campaign.withdraw(campaignId, WITHDRAW_AMOUNT + DONATE_AMOUNT);
     }
 
-    function testWithdrawERC20LessBalance() public initCampaignAndUser  {
+    function testWithdrawERC20LessBalance() public initCampaignAndUser {
         hoax(user2, DONATE_AMOUNT);
         IERC20(mockToken).approve(address(campaign), DONATE_AMOUNT);
         hoax(user2);
         campaign.donate(campaignId, DONATE_AMOUNT, address(mockToken));
         hoax(user);
-        vm.expectRevert(abi.encodeWithSelector(Campaign.InsufficientBalance.selector, WITHDRAW_AMOUNT + DONATE_AMOUNT, DONATE_AMOUNT));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Campaign.InsufficientBalance.selector, WITHDRAW_AMOUNT + DONATE_AMOUNT, DONATE_AMOUNT
+            )
+        );
         campaign.withdraw(campaignId, WITHDRAW_AMOUNT + DONATE_AMOUNT, address(mockToken));
     }
 
-    function testOnlyOwnerCanWithdraw() public initCampaignAndUser  {
-        (, , , , , address owner) = campaign.getCampaignInfo(campaignId);
+    function testOnlyOwnerCanWithdraw() public initCampaignAndUser {
+        (,,,,, address owner) = campaign.getCampaignInfo(campaignId);
         assertEq(owner, user);
         campaign.donate{value: DONATE_AMOUNT}(campaignId, DONATE_AMOUNT);
         hoax(user2);
@@ -162,8 +195,8 @@ contract CampaignTest is Test {
         campaign.withdraw(campaignId, WITHDRAW_AMOUNT);
     }
 
-    function testOnlyOwnerCanWithdrawERC20() public initCampaignAndUser  {
-        (, , , , , address owner) = campaign.getCampaignInfo(campaignId);
+    function testOnlyOwnerCanWithdrawERC20() public initCampaignAndUser {
+        (,,,,, address owner) = campaign.getCampaignInfo(campaignId);
         assertEq(owner, user);
         vm.startPrank(user2);
         IERC20(mockToken).approve(address(campaign), DONATE_AMOUNT);
@@ -175,7 +208,7 @@ contract CampaignTest is Test {
         campaign.withdraw(campaignId, WITHDRAW_AMOUNT, address(mockToken));
     }
 
-    function testReentrancyAttack() public initCampaignAndUser () {
+    function testReentrancyAttack() public initCampaignAndUser {
         campaign.donate{value: DONATE_AMOUNT}(campaignId, DONATE_AMOUNT);
         hoax(user);
         campaign.withdraw(campaignId, WITHDRAW_AMOUNT);

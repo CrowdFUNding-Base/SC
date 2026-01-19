@@ -3,8 +3,11 @@ pragma solidity ^0.8.30;
 
 import {ReentrancyGuard} from "openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {MockSwap} from "./MockSwap.sol";
 
 contract Campaign is ReentrancyGuard {
+    using SafeERC20 for IERC20;
     struct CampaignStruct {
         string name;
         string creatorName;
@@ -16,6 +19,11 @@ contract Campaign is ReentrancyGuard {
     mapping(uint256 => CampaignStruct) private _campaigns;
     uint256 private _currentTokenId = 0;
 
+    // MockSwap contract for token swaps
+    MockSwap public mockSwap;
+    // Storage token - all donations are converted to this token
+    address public storageToken;
+
     event CampaignCreated(uint256 indexed campaignId, string name, string creatorName, address indexed owner, uint256 creationTime, uint256 targetAmount);
     event DonationReceived(uint256 indexed campaignId, address indexed donor, uint256 amount);
     event FundWithdrawn(uint256 indexed campaignId, string name, address indexed owner, string creatorName, uint256 amount);
@@ -26,8 +34,14 @@ contract Campaign is ReentrancyGuard {
     error OnlyOwnerCanWithdraw(address caller);
     error InsufficientBalance(uint256 requested, uint256 available);
     error WithdrawalFailed(address to, string campaignName, uint256 amount);
+    error SwapFailed();
 
-    constructor() {}
+    /// @param _mockSwap Address of the MockSwap contract
+    /// @param _storageToken Address of the token to store donations in (e.g., IDRX)
+    constructor(address _mockSwap, address _storageToken) {
+        mockSwap = MockSwap(_mockSwap);
+        storageToken = _storageToken;
+    }
 
     /// @notice Create a new campaign
     /// @param name The name of the campaign
@@ -62,19 +76,31 @@ contract Campaign is ReentrancyGuard {
         emit DonationReceived(campaignId, msg.sender, amount);
     }
 
-    /// @notice Donate to a campaign with ERC20 token
+    /// @notice Donate to a campaign with ERC20 token (auto-swaps to storageToken)
     /// @param campaignId The ID of the campaign to donate to
     /// @param amount The amount of ERC20 token to donate
-    /// @param tokenIn The address of the ERC20 token
-    function donate(uint256 campaignId, uint256 amount, address tokenIn) public {
+    /// @param tokenIn The address of the ERC20 token being donated
+    function donate(uint256 campaignId, uint256 amount, address tokenIn) public nonReentrant {
         if(amount <= 0) revert AmountMustBeGreaterThanZero(amount);
         if(_campaigns[campaignId].owner == address(0)) revert CampaignNotFound(campaignId);
-        bool success = IERC20(tokenIn).transferFrom(msg.sender, address(this), amount);
-        if(!success) revert WithdrawalFailed(msg.sender, _campaigns[campaignId].name, amount);
-        else{
-            _campaigns[campaignId].balance += amount;
-            emit DonationReceived(campaignId, msg.sender, amount);
-        }   
+
+        uint256 amountToStore;
+
+        if (tokenIn == storageToken) {
+            IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amount);
+            amountToStore = amount;
+        } else {
+            IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amount);
+            IERC20(tokenIn).approve(address(mockSwap), amount);
+            uint256 balanceBefore = IERC20(storageToken).balanceOf(address(this));
+            mockSwap.swap(tokenIn, storageToken, amount);
+            uint256 balanceAfter = IERC20(storageToken).balanceOf(address(this));
+            amountToStore = balanceAfter - balanceBefore;
+            if (amountToStore == 0) revert SwapFailed();
+        }
+
+        _campaigns[campaignId].balance += amountToStore;
+        emit DonationReceived(campaignId, msg.sender, amountToStore);
     }
 
     /// @notice Withdraw funds from a campaign
