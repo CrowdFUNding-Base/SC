@@ -102,36 +102,73 @@ contract ReentrancyTest is Test {
     uint256 constant DONATE_AMOUNT = 5 ether;
     uint256 constant WITHDRAW_AMOUNT = 1 ether;
 
-    // 1 ETH = 48,000,000 IDRX (IDRX has 2 decimals)
-    uint256 constant ETH_TO_IDRX = 4_800_000_000;
+    // 1 Base Native Token = 2684 IDRX (2 decimals)
+    // For correct swap math in MockSwap, scaled by 100
+    uint256 constant BASE_TO_IDRX = 26_840_000;
 
     function setUp() public {
         mockIdrx = new IDRX();
         mockSwap = new MockSwap();
 
-        // Add IDRX to mockSwap with ETH rate
-        mockSwap.addToken(address(mockIdrx), ETH_TO_IDRX, mockIdrx.decimals());
+        // Add IDRX to mockSwap with Base Native Token rate
+        mockSwap.addToken(address(mockIdrx), BASE_TO_IDRX, mockIdrx.decimals());
 
         // Mint liquidity to mockSwap
         mockIdrx.mint(address(mockSwap), 1_000_000_000 * 10 ** mockIdrx.decimals());
 
-        campaign = new Campaign(address(mockSwap), address(mockIdrx));
+        campaign = new Campaign(payable(address(mockSwap)), address(mockIdrx));
         funder = makeAddr("funder");
         vm.deal(funder, INITIAL_AMOUNT);
         attacker = new ReentrancyAttacker(address(campaign));
     }
 
+    /**
+     * @notice Test that IDRX (ERC20) withdrawals are inherently safe from reentrancy
+     * @dev Since withdrawals are now in IDRX (ERC20), the receive() function is NOT called
+     *      This makes reentrancy attacks impossible via the withdrawal mechanism
+     *      The nonReentrant modifier provides additional protection
+     */
     function testReentrancyIsPrevented() public {
         vm.startPrank(funder);
         console.log("CAMPAIGN ADDRESS", address(campaign));
         console.log("FUNDER BALANCE", address(funder).balance);
-        campaignId = attacker.createMyCampaign("Attack", "Evil", CAMPAIGN_TARGET, address(0));
-        campaign.donate{value: DONATE_AMOUNT}(campaignId, DONATE_AMOUNT);
-        console.log("CAMPAIGN BALANCE", address(campaign).balance);
-        vm.expectRevert(
-            abi.encodeWithSelector(Campaign.WithdrawalFailed.selector, address(attacker), "Attack", WITHDRAW_AMOUNT)
+
+        // Attacker creates campaign and becomes owner
+        campaignId = attacker.createMyCampaign("Attack", "Evil", CAMPAIGN_TARGET, address(mockIdrx));
+
+        // Donate with Base Native Token (auto-swapped to IDRX)
+        campaign.donate{value: DONATE_AMOUNT}(campaignId);
+
+        // Calculate expected IDRX after swap
+        uint256 expectedIDRX = (DONATE_AMOUNT * BASE_TO_IDRX) / 1e18;
+        uint256 withdrawIDRX = expectedIDRX / 5; // Withdraw 1/5 of deposited IDRX
+
+        console.log("CAMPAIGN IDRX BALANCE", mockIdrx.balanceOf(address(campaign)));
+        console.log("WITHDRAW AMOUNT (IDRX)", withdrawIDRX);
+
+        uint256 attackerBalanceBefore = mockIdrx.balanceOf(address(attacker));
+        console.log("Attacker IDRX balance before:", attackerBalanceBefore);
+
+        // The attack attempt - since IDRX is ERC20, receive() is NOT called
+        // So the attacker's reentrancy attempt via receive() will never trigger
+        // The withdrawal will succeed normally
+        attacker.attack(withdrawIDRX);
+
+        uint256 attackerBalanceAfter = mockIdrx.balanceOf(address(attacker));
+        console.log("Attacker IDRX balance after:", attackerBalanceAfter);
+
+        // Verify the attacker received IDRX but could not exploit reentrancy
+        assertEq(attackerBalanceAfter, attackerBalanceBefore + withdrawIDRX, "Attacker should receive IDRX");
+
+        // Verify campaign balance decreased correctly (no extra withdrawals from reentrancy)
+        (,, uint256 remainingBalance,,,) = campaign.getCampaignInfo(campaignId);
+        assertEq(
+            remainingBalance, expectedIDRX - withdrawIDRX, "Campaign balance should decrease by exactly withdraw amount"
         );
-        attacker.attack(WITHDRAW_AMOUNT);
+
+        console.log("Reentrancy protection verified - ERC20 transfers don't trigger receive()");
+        console.log("Campaign remaining balance:", remainingBalance);
+
         vm.stopPrank();
     }
 }

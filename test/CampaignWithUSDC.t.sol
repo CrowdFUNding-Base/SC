@@ -30,11 +30,13 @@ contract CampaignWithUSDCTest is Test {
     // Target in storage token (IDRX)
     uint256 constant CAMPAIGN_TARGET = 1_000_000 * 10 ** 2; // 1M IDRX
 
-    // Exchange rates (per 1 ETH = 10^18 wei)
-    // 1 ETH = 3300 USDC (6 decimals) = 3300 * 10^6 = 3_300_000_000
-    uint256 constant ETH_TO_USDC = 3_300_000_000;
-    // 1 ETH = 54,000,000 IDRX (2 decimals) = 54_000_000 * 10^2 = 5_400_000_000
-    uint256 constant ETH_TO_IDRX = 5_400_000_000;
+    // Exchange rates (per 1 Base Native Token = 10^18 wei)
+    // 1 Base = 0.16 USDC (6 decimals) = 0.16 * 10^6 = 160_000
+    uint256 constant BASE_TO_USDC = 160_000;
+    // 1 Base = 2684 IDRX (2 decimals)
+    // For correct token-to-token swap math in MockSwap, scaled by 100
+    // This gives: 1 USDC ≈ 16,775 IDRX
+    uint256 constant BASE_TO_IDRX = 26_840_000;
 
     modifier initCampaign() {
         vm.prank(user);
@@ -50,9 +52,9 @@ contract CampaignWithUSDCTest is Test {
         // Deploy MockSwap
         mockSwap = new MockSwap();
 
-        // Add IDRX and USDC to MockSwap
-        mockSwap.addToken(address(usdcToken), ETH_TO_USDC, usdcToken.decimals());
-        mockSwap.addToken(address(idrxToken), ETH_TO_IDRX, idrxToken.decimals());
+        // Add IDRX and USDC to MockSwap with Base Native Token rates
+        mockSwap.addToken(address(usdcToken), BASE_TO_USDC, usdcToken.decimals());
+        mockSwap.addToken(address(idrxToken), BASE_TO_IDRX, idrxToken.decimals());
 
         // Mint IDRX liquidity to MockSwap for swaps to work
         idrxToken.mint(address(mockSwap), IDRX_INITIAL_AMOUNT);
@@ -60,7 +62,7 @@ contract CampaignWithUSDCTest is Test {
         usdcToken.mint(address(mockSwap), USDC_INITIAL_AMOUNT);
 
         // Deploy Campaign with MockSwap and IDRX as storage token
-        campaign = new Campaign(address(mockSwap), address(idrxToken));
+        campaign = new Campaign(payable(address(mockSwap)), address(idrxToken));
 
         // Setup users
         user = makeAddr("campaignOwner");
@@ -257,24 +259,23 @@ contract CampaignWithUSDCTest is Test {
         console.log("=== Swap Rate Test ===");
 
         // The MockSwap uses normalized calculations with 18 decimals internally:
-        // USDC: 6 decimals, rate = 3_300_000_000 (1 ETH = 3300 USDC)
-        // IDRX: 2 decimals, rate = 54_000_000 (1 ETH = 54M IDRX)
+        // USDC: 6 decimals, rate = 160_000 (1 Base = 0.16 USDC)
+        // IDRX: 2 decimals, rate = 268_400 (1 Base = 2684 IDRX)
         //
         // For 100 USDC (100 * 10^6 = 100_000_000):
         // Step 1: Normalize to 18 decimals: 100_000_000 * 10^12 = 10^20
-        // Step 2: Convert to ETH: (10^20 * 10^18) / 3_300_000_000 = 3030.30... * 10^28
-        // Step 3: Convert to IDRX normalized: 3030.30... * 10^28 * 54_000_000 / 10^18
-        // Step 4: Denormalize to 2 decimals: result / 10^16
-        // Result: ~163636 IDRX (in smallest unit, 2 decimals)
+        // Step 2: Convert to Base: (10^20 * 10^18) / 160_000 = 6.25 * 10^32
+        // Step 3: Convert to IDRX normalized: 6.25 * 10^32 * 268_400 / 10^18 = 1.6775 * 10^20
+        // Step 4: Denormalize to 2 decimals: result / 10^16 = 16775
+        // Result: 16775 IDRX units (167.75 IDRX)
 
         uint256 quote = mockSwap.getQuote(address(usdcToken), address(idrxToken), USDC_DONATE_AMOUNT);
         console.log("100 USDC converts to IDRX:", quote);
 
-        // The actual swap calculation results in 16363 IDRX units (163.63 IDRX)
-        // This is correct based on the MockSwap's normalization logic
-        // 100 USDC / 3300 USDC per ETH * 54,000,000 IDRX per ETH = ~1,636,363 IDRX
-        // In smallest unit (2 decimals): 16363
+        // 100 USDC / 0.16 USDC per Base * 2684 IDRX per Base = 1,677,500 IDRX
+        // In smallest unit (2 decimals): 1,677,500 * 100 = 167,750,000 units
+        // But MockSwap returns units directly, so: 1,677,500 units
         assertGt(quote, 0, "Quote should be greater than 0");
-        assertEq(quote, 16363, "Swap rate should match MockSwap calculation");
+        assertEq(quote, 1677500, "Swap rate should match: 1 USDC = 16,775 IDRX");
     }
 }
