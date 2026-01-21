@@ -117,12 +117,19 @@ One of the most powerful features of CrowdFUNding is the **automatic token swap*
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │   Donor sends   │────▶│   MockSwap       │────▶│   Campaign      │
-│   USDC/other    │     │   auto-converts  │     │   receives IDRX │
-│   tokens        │     │   to IDRX        │     │                 │
+│   BASE/USDC/    │     │   auto-converts  │     │   receives IDRX │
+│   other tokens  │     │   to IDRX        │     │                 │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
 ```
 
-1. **Donor donates** with any supported token (e.g., USDC)
+#### Native Token (BASE) Donations:
+1. **Donor donates** using BASE native token
+2. **Smart contract calls** `swapETHForToken()` on MockSwap
+3. **BASE is auto-swapped** to IDRX at the current rate
+4. **Campaign receives** the equivalent amount in IDRX
+
+#### ERC20 Token Donations:
+1. **Donor donates** with any supported ERC20 token (e.g., USDC)
 2. **Smart contract automatically swaps** the token to IDRX via MockSwap
 3. **Campaign receives** the equivalent amount in IDRX
 4. **Campaign owner withdraws** funds in IDRX
@@ -131,6 +138,7 @@ One of the most powerful features of CrowdFUNding is the **automatic token swap*
 
 | Feature | Benefit |
 |---------|----------|
+| **Native token support** | Donate with BASE, auto-converted to IDRX |
 | **Multi-currency support** | Accept donations in USDC, IDRX, and more |
 | **Automatic conversion** | No manual token swaps needed |
 | **Unified accounting** | All campaign balances stored in IDRX |
@@ -141,6 +149,7 @@ One of the most powerful features of CrowdFUNding is the **automatic token swap*
 
 This feature is designed to **maximize global participation**:
 
+- **BASE native token** can be used directly, auto-converted to IDRX
 - **International donors** can contribute in USDC (widely used globally)
 - **Indonesian donors** can contribute directly in IDRX
 - **Campaign creators** receive all funds in IDRX for easy local withdrawal
@@ -148,12 +157,14 @@ This feature is designed to **maximize global participation**:
 
 ### 📊 Exchange Rates (Testnet)
 
-| Token | Rate per ETH | Decimals |
-|-------|--------------|----------|
-| USDC  | 3,300 USDC   | 6        |
-| IDRX  | 54,000,000 IDRX | 2     |
+| Token | Rate per BASE | Decimals |
+|-------|---------------|----------|
+| USDC  | 0.16 USDC     | 6        |
+| IDRX  | 2,684 IDRX    | 2        |
 
-> 💡 **Example**: A donation of 100 USDC would be automatically converted to approximately 1,636,363 IDRX (163,636.36 IDRX in display units).
+> 💡 **Example**: 
+> - A donation of **1 BASE** would be automatically converted to approximately **2,684 IDRX**
+> - A donation of **100 USDC** would be automatically converted to approximately **1,677,500 IDRX** (16,775 IDRX per 1 USDC)
 
 ---
 
@@ -168,19 +179,20 @@ The heart of the platform. Manages all crowdfunding campaigns with integrated au
 | Function            | Description                                                             |
 | ------------------- | ----------------------------------------------------------------------- |
 | `createCampaign()`  | Create a new fundraising campaign with name, creator, and target amount |
-| `donate(uint256, uint256)` | Donate native currency to a campaign                             |
+| `donate(uint256)`   | Donate BASE native token to a campaign (auto-swaps to IDRX)             |
 | `donate(uint256, uint256, address)` | Donate ERC20 tokens (auto-swaps to IDRX if needed)    |
-| `withdraw(uint256, uint256)` | Withdraw native currency from a campaign                     |
-| `withdraw(uint256, uint256, address)` | Withdraw ERC20 tokens (IDRX) from a campaign        |
+| `withdraw(uint256, uint256)` | Withdraw IDRX from a campaign                                |
+| `withdraw(uint256, uint256, address)` | Withdraw specific ERC20 tokens from a campaign     |
 | `getCampaignInfo()` | Retrieve campaign details (name, balance, target, etc.)                 |
 
 **Features:**
 
-- 🔄 **Auto-swap integration** — Donations in non-IDRX tokens are automatically converted
-- 💰 Supports both native currency and ERC20 token donations
+- 🔄 **Auto-swap integration** — Donations in BASE native token or non-IDRX tokens are automatically converted to IDRX
+- 💰 Supports both BASE native token and ERC20 token donations
 - 🔒 ReentrancyGuard protection for secure withdrawals
 - 📡 Event emissions for donation tracking
 - 🏦 Unified storage in IDRX for consistent accounting
+- 💸 All withdrawals paid out in IDRX
 
 ### 2. **Badge.sol** - Achievement NFT Contract
 
@@ -221,18 +233,20 @@ A mock ERC20 token simulating USDC (USD Coin).
 
 Handles automatic token conversions for multi-currency donations.
 
-| Function       | Description                                           |
-| -------------- | ----------------------------------------------------- |
-| `addToken()`   | Register a new token with its ETH exchange rate       |
-| `swap()`       | Swap tokens from one type to another                  |
-| `getQuote()`   | Get expected output amount for a swap (view function) |
-| `getTokenInfo()` | Retrieve token details (address, decimals, rate)    |
+| Function           | Description                                              |
+| ------------------ | -------------------------------------------------------- |
+| `addToken()`       | Register a new token with its BASE exchange rate         |
+| `swap()`           | Swap tokens from one type to another                     |
+| `swapETHForToken()`| Swap BASE native token to ERC20 token                    |
+| `getQuote()`       | Get expected output amount for a swap (view function)    |
+| `getQuoteETH()`    | Get expected output for BASE to token swap (view)        |
+| `getTokenInfo()`   | Retrieve token details (address, decimals, rate)         |
 
 **How the Swap Works:**
 
 1. Normalizes input amount to 18 decimals
-2. Converts to ETH equivalent using input token's rate
-3. Converts ETH to output token using output token's rate
+2. Converts to BASE equivalent using input token's rate
+3. Converts BASE to output token using output token's rate
 4. Denormalizes to output token's decimals
 
 > ⚠️ **Note**: The Mock tokens and MockSwap are used **only for simulation and testing purposes**. In production, you would integrate with actual token contracts and a real DEX (like Uniswap or Aerodrome).
@@ -464,17 +478,17 @@ All contracts are deployed on **Base Sepolia Testnet**:
 | ------------- | -------------------------------------------- |
 | **Mock IDRX** | `0xAC90f99347766F9b3b425Ca54248150e2C9D1Bde` |
 | **Mock USDC** | `0xC85840d4754aC06cEE7138eC0a664317921B6B5f` |
-| **MockSwap**  | `0x3d03aa45D45d7ed60687927D7fD6740e4D445278` |
-| **Campaign**  | `0x48FAdb5CA6B3892BfAaEa8500673F7F982828f3D` |
-| **Badge**     | `0x151dab237442706031D61810d6Cb053DCbDa2b8E` |
+| **MockSwap**  | `0x2F450f4ee5a513aF7313253127f0E5EcBE2cB9c1` |
+| **Campaign**  | `0x669419298f071c321EF9B9cCA44be58E380A5fE3` |
+| **Badge**     | `0xdbe867Ddb16e0b34593f2Cef45e755feC2a8ce9d` |
 
 ### View on Basescan
 
 - [Mock IDRX](https://sepolia.basescan.org/address/0xAC90f99347766F9b3b425Ca54248150e2C9D1Bde)
 - [Mock USDC](https://sepolia.basescan.org/address/0xC85840d4754aC06cEE7138eC0a664317921B6B5f)
-- [MockSwap](https://sepolia.basescan.org/address/0x3d03aa45D45d7ed60687927D7fD6740e4D445278)
-- [Campaign](https://sepolia.basescan.org/address/0x48FAdb5CA6B3892BfAaEa8500673F7F982828f3D)
-- [Badge](https://sepolia.basescan.org/address/0x151dab237442706031D61810d6Cb053DCbDa2b8E)
+- [MockSwap](https://sepolia.basescan.org/address/0x2F450f4ee5a513aF7313253127f0E5EcBE2cB9c1)
+- [Campaign](https://sepolia.basescan.org/address/0x669419298f071c321EF9B9cCA44be58E380A5fE3)
+- [Badge](https://sepolia.basescan.org/address/0xdbe867Ddb16e0b34593f2Cef45e755feC2a8ce9d)
 
 ---
 
