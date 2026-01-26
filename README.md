@@ -123,12 +123,14 @@ One of the most powerful features of CrowdFUNding is the **automatic token swap*
 ```
 
 #### Native Token (BASE) Donations:
+
 1. **Donor donates** using BASE native token
 2. **Smart contract calls** `swapETHForToken()` on MockSwap
 3. **BASE is auto-swapped** to IDRX at the current rate
 4. **Campaign receives** the equivalent amount in IDRX
 
 #### ERC20 Token Donations:
+
 1. **Donor donates** with any supported ERC20 token (e.g., USDC)
 2. **Smart contract automatically swaps** the token to IDRX via MockSwap
 3. **Campaign receives** the equivalent amount in IDRX
@@ -136,14 +138,14 @@ One of the most powerful features of CrowdFUNding is the **automatic token swap*
 
 ### 💡 Benefits
 
-| Feature | Benefit |
-|---------|----------|
-| **Native token support** | Donate with BASE, auto-converted to IDRX |
-| **Multi-currency support** | Accept donations in USDC, IDRX, and more |
-| **Automatic conversion** | No manual token swaps needed |
-| **Unified accounting** | All campaign balances stored in IDRX |
-| **Global accessibility** | International donors can use familiar tokens |
-| **Transparent rates** | Exchange rates are on-chain and verifiable |
+| Feature                    | Benefit                                      |
+| -------------------------- | -------------------------------------------- |
+| **Native token support**   | Donate with BASE, auto-converted to IDRX     |
+| **Multi-currency support** | Accept donations in USDC, IDRX, and more     |
+| **Automatic conversion**   | No manual token swaps needed                 |
+| **Unified accounting**     | All campaign balances stored in IDRX         |
+| **Global accessibility**   | International donors can use familiar tokens |
+| **Transparent rates**      | Exchange rates are on-chain and verifiable   |
 
 ### 🌍 Global Reach
 
@@ -158,11 +160,12 @@ This feature is designed to **maximize global participation**:
 ### 📊 Exchange Rates (Testnet)
 
 | Token | Rate per BASE | Decimals |
-|-------|---------------|----------|
+| ----- | ------------- | -------- |
 | USDC  | 0.16 USDC     | 6        |
 | IDRX  | 2,684 IDRX    | 2        |
 
-> 💡 **Example**: 
+> 💡 **Example**:
+>
 > - A donation of **1 BASE** would be automatically converted to approximately **2,684 IDRX**
 > - A donation of **100 USDC** would be automatically converted to approximately **1,677,500 IDRX** (16,775 IDRX per 1 USDC)
 
@@ -176,14 +179,14 @@ This project consists of **5 main smart contracts**:
 
 The heart of the platform. Manages all crowdfunding campaigns with integrated auto-swap functionality.
 
-| Function            | Description                                                             |
-| ------------------- | ----------------------------------------------------------------------- |
-| `createCampaign()`  | Create a new fundraising campaign with name, creator, and target amount |
-| `donate(uint256)`   | Donate BASE native token to a campaign (auto-swaps to IDRX)             |
-| `donate(uint256, uint256, address)` | Donate ERC20 tokens (auto-swaps to IDRX if needed)    |
-| `withdraw(uint256, uint256)` | Withdraw IDRX from a campaign                                |
-| `withdraw(uint256, uint256, address)` | Withdraw specific ERC20 tokens from a campaign     |
-| `getCampaignInfo()` | Retrieve campaign details (name, balance, target, etc.)                 |
+| Function                              | Description                                                             |
+| ------------------------------------- | ----------------------------------------------------------------------- |
+| `createCampaign()`                    | Create a new fundraising campaign with name, creator, and target amount |
+| `donate(uint256)`                     | Donate BASE native token to a campaign (auto-swaps to IDRX)             |
+| `donate(uint256, uint256, address)`   | Donate ERC20 tokens (auto-swaps to IDRX if needed)                      |
+| `withdraw(uint256, uint256)`          | Withdraw IDRX from a campaign                                           |
+| `withdraw(uint256, uint256, address)` | Withdraw specific ERC20 tokens from a campaign                          |
+| `getCampaignInfo()`                   | Retrieve campaign details (name, balance, target, etc.)                 |
 
 **Features:**
 
@@ -233,14 +236,14 @@ A mock ERC20 token simulating USDC (USD Coin).
 
 Handles automatic token conversions for multi-currency donations.
 
-| Function           | Description                                              |
-| ------------------ | -------------------------------------------------------- |
-| `addToken()`       | Register a new token with its BASE exchange rate         |
-| `swap()`           | Swap tokens from one type to another                     |
-| `swapETHForToken()`| Swap BASE native token to ERC20 token                    |
-| `getQuote()`       | Get expected output amount for a swap (view function)    |
-| `getQuoteETH()`    | Get expected output for BASE to token swap (view)        |
-| `getTokenInfo()`   | Retrieve token details (address, decimals, rate)         |
+| Function            | Description                                           |
+| ------------------- | ----------------------------------------------------- |
+| `addToken()`        | Register a new token with its BASE exchange rate      |
+| `swap()`            | Swap tokens from one type to another                  |
+| `swapETHForToken()` | Swap BASE native token to ERC20 token                 |
+| `getQuote()`        | Get expected output amount for a swap (view function) |
+| `getQuoteETH()`     | Get expected output for BASE to token swap (view)     |
+| `getTokenInfo()`    | Retrieve token details (address, decimals, rate)      |
 
 **How the Swap Works:**
 
@@ -480,7 +483,7 @@ All contracts are deployed on **Base Sepolia Testnet**:
 | **Mock USDC** | `0xC85840d4754aC06cEE7138eC0a664317921B6B5f` |
 | **MockSwap**  | `0x2F450f4ee5a513aF7313253127f0E5EcBE2cB9c1` |
 | **Campaign**  | `0x669419298f071c321EF9B9cCA44be58E380A5fE3` |
-| **Badge**     | `0xdbe867Ddb16e0b34593f2Cef45e755feC2a8ce9d` |
+| **Badge**     | `0x27EA9B34D708ff7646F92Dab287DfD43EbBA0d19` |
 
 ### View on Basescan
 
@@ -488,7 +491,7 @@ All contracts are deployed on **Base Sepolia Testnet**:
 - [Mock USDC](https://sepolia.basescan.org/address/0xC85840d4754aC06cEE7138eC0a664317921B6B5f)
 - [MockSwap](https://sepolia.basescan.org/address/0x2F450f4ee5a513aF7313253127f0E5EcBE2cB9c1)
 - [Campaign](https://sepolia.basescan.org/address/0x669419298f071c321EF9B9cCA44be58E380A5fE3)
-- [Badge](https://sepolia.basescan.org/address/0xdbe867Ddb16e0b34593f2Cef45e755feC2a8ce9d)
+- [Badge](https://sepolia.basescan.org/address/0x27EA9B34D708ff7646F92Dab287DfD43EbBA0d19)
 
 ---
 

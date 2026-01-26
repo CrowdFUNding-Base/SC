@@ -25,9 +25,9 @@ contract Deployer is Script {
 
     function run() public {
         vm.startBroadcast();
-        deployMockToken();
-        deploySwap();
-        deployContract();
+        // deployMockToken();
+        // deploySwap();
+        // deployContract();
         deployBadge();
         vm.stopBroadcast();
     }
