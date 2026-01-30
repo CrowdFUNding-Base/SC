@@ -9,17 +9,17 @@ The CrowdFUNding smart contracts consist of five main contracts that work togeth
 ```mermaid
 flowchart TB
     subgraph Core["Core Contracts"]
-        Campaign["Campaign.sol\n(Singleton Pattern)"]
-        Badge["Badge.sol\n(ERC721 NFTs)"]
+        Campaign["Campaign.sol (Singleton Pattern)"]
+        Badge["Badge.sol (ERC721 NFTs)"]
     end
 
     subgraph Support["Support Contracts"]
-        MockSwap["MockSwap.sol\n(Token Router)"]
+        MockSwap["MockSwap.sol (Token Router)"]
     end
 
     subgraph Tokens["Token Contracts"]
-        IDRX["MockIDRX.sol\n(ERC20, 2 decimals)"]
-        USDC["MockUSDC.sol\n(ERC20, 6 decimals)"]
+        IDRX["MockIDRX.sol (ERC20, 2 decimals)"]
+        USDC["MockUSDC.sol (ERC20, 6 decimals)"]
     end
 
     subgraph Libraries["OpenZeppelin"]
@@ -177,11 +177,11 @@ The following diagram shows how the swap calculation works:
 
 ```mermaid
 flowchart TB
-    Input["Input Token\n(ETH/USDC)"] --> Normalize["1. Normalize to\n18 decimals"]
-    Normalize --> Convert["2. Convert to\nBASE equivalent"]
-    Convert --> Apply["3. Apply IDRX\nrate"]
-    Apply --> Denormalize["4. Denormalize to\n2 decimals"]
-    Denormalize --> Output["Output\n(IDRX)"]
+    Input["Input Token (ETH/USDC)"] --> Normalize["1. Normalize to 18 decimals"]
+    Normalize --> Convert["2. Convert to BASE equivalent"]
+    Convert --> Apply["3. Apply IDRX rate"]
+    Apply --> Denormalize["4. Denormalize to 2 decimals"]
+    Denormalize --> Output["Output (IDRX)"]
 ```
 
 #### Functions
@@ -233,13 +233,13 @@ Instead of deploying a new contract for each campaign, one Campaign.sol instance
 ```mermaid
 flowchart LR
     subgraph Traditional["Traditional Approach"]
-        Factory["Factory"] --> C1["Campaign 1\n(separate contract)"]
-        Factory --> C2["Campaign 2\n(separate contract)"]
-        Factory --> C3["Campaign 3\n(separate contract)"]
+        Factory["Factory"] --> C1["Campaign 1 (separate contract)"]
+        Factory --> C2["Campaign 2 (separate contract)"]
+        Factory --> C3["Campaign 3 (separate contract)"]
     end
 
     subgraph Singleton["Our Approach"]
-        Single["Campaign.sol"] --> M["mapping\n(campaignId => data)"]
+        Single["Campaign.sol"] --> M["mapping (campaignId => data)"]
     end
 ```
 
@@ -301,10 +301,10 @@ The following diagram shows the security checks during a withdrawal:
 
 ```mermaid
 flowchart TB
-    Request["Withdrawal Request"] --> ReentrancyCheck["1. ReentrancyGuard\n(prevent recursive calls)"]
-    ReentrancyCheck --> OwnerCheck["2. Owner Validation\n(msg.sender == owner)"]
-    OwnerCheck --> BalanceCheck["3. Balance Check\n(balance >= amount)"]
-    BalanceCheck --> StateUpdate["4. Update State First\n(balance -= amount)"]
-    StateUpdate --> Transfer["5. SafeERC20 Transfer\n(to owner)"]
+    Request["Withdrawal Request"] --> ReentrancyCheck["1. ReentrancyGuard (prevent recursive calls)"]
+    ReentrancyCheck --> OwnerCheck["2. Owner Validation (msg.sender == owner)"]
+    OwnerCheck --> BalanceCheck["3. Balance Check (balance >= amount)"]
+    BalanceCheck --> StateUpdate["4. Update State First (balance -= amount)"]
+    StateUpdate --> Transfer["5. SafeERC20 Transfer (to owner)"]
     Transfer --> Event["6. Emit Event"]
 ```

@@ -157,8 +157,8 @@ The smart contracts follow a singleton pattern where one contract manages all ca
 ```mermaid
 flowchart LR
     subgraph Core["Core Contracts"]
-        Campaign["Campaign.sol\n(Singleton)"]
-        Badge["Badge.sol\n(NFT Factory)"]
+        Campaign["Campaign.sol (Singleton)"]
+        Badge["Badge.sol (NFT Factory)"]
     end
 
     subgraph Support["Support Contracts"]
