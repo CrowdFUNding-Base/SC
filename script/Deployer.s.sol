@@ -19,23 +19,22 @@ contract Deployer is Script {
     // 1 Base = 0.16 USDC (6 decimals) = 0.16 * 10^6 = 160_000
     uint256 constant BASE_TO_USDC = 160_000;
     // 1 Base = 2684 IDRX (2 decimals) = 2684 * 10^2 = 268_400
-    // Note: For token-to-token swap to work correctly with MockSwap, we scale by 100
-    // This gives correct result: 1 USDC ≈ 16,775 IDRX
-    uint256 constant BASE_TO_IDRX = 26_840_000;
+
+    uint256 constant BASE_TO_IDRX = 26_840_000_000;
 
     function run() public {
         vm.startBroadcast();
-        // deployMockToken();
-        // deploySwap();
-        // deployContract();
+        deployMockToken();
+        deploySwap();
+        deployContract();
         deployBadge();
         vm.stopBroadcast();
     }
 
     // deploy mock token
     function deployMockToken() public {
-        mockIdrx = IDRX(0xAC90f99347766F9b3b425Ca54248150e2C9D1Bde);
-        mockUsdc = USDC(0xC85840d4754aC06cEE7138eC0a664317921B6B5f);
+        mockIdrx = new IDRX();
+        mockUsdc = new USDC();
         console.log("Mock IDRX deployed at:", address(mockIdrx));
         console.log("Mock USDC deployed at:", address(mockUsdc));
     }

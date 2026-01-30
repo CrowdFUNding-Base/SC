@@ -479,19 +479,19 @@ All contracts are deployed on **Base Sepolia Testnet**:
 
 | Contract      | Address                                      |
 | ------------- | -------------------------------------------- |
-| **Mock IDRX** | `0xAC90f99347766F9b3b425Ca54248150e2C9D1Bde` |
-| **Mock USDC** | `0xC85840d4754aC06cEE7138eC0a664317921B6B5f` |
-| **MockSwap**  | `0x2F450f4ee5a513aF7313253127f0E5EcBE2cB9c1` |
-| **Campaign**  | `0x669419298f071c321EF9B9cCA44be58E380A5fE3` |
-| **Badge**     | `0x27EA9B34D708ff7646F92Dab287DfD43EbBA0d19` |
+| **Mock IDRX** | `0x387551ac55Bb6949d44715D07880f8c6260934B6` |
+| **Mock USDC** | `0x1b929eB40670aA4e0D757d45cA9aea2311a25a97` |
+| **MockSwap**  | `0x554366984fD2f5D82c753F91357d80c29F887F17` |
+| **Campaign**  | `0x44e87aa98d721Dbcf368690bF5aAb1F3dD944dA9` |
+| **Badge**     | `0xaE32Df9Fb677aE68C5A1F956761a42e269Ebdc99` |
 
 ### View on Basescan
 
-- [Mock IDRX](https://sepolia.basescan.org/address/0xAC90f99347766F9b3b425Ca54248150e2C9D1Bde)
-- [Mock USDC](https://sepolia.basescan.org/address/0xC85840d4754aC06cEE7138eC0a664317921B6B5f)
-- [MockSwap](https://sepolia.basescan.org/address/0x2F450f4ee5a513aF7313253127f0E5EcBE2cB9c1)
-- [Campaign](https://sepolia.basescan.org/address/0x669419298f071c321EF9B9cCA44be58E380A5fE3)
-- [Badge](https://sepolia.basescan.org/address/0x27EA9B34D708ff7646F92Dab287DfD43EbBA0d19)
+- [Mock IDRX](https://sepolia.basescan.org/address/0x387551ac55Bb6949d44715D07880f8c6260934B6)
+- [Mock USDC](https://sepolia.basescan.org/address/0x1b929eB40670aA4e0D757d45cA9aea2311a25a97)
+- [MockSwap](https://sepolia.basescan.org/address/0x554366984fD2f5D82c753F91357d80c29F887F17)
+- [Campaign](https://sepolia.basescan.org/address/0x44e87aa98d721Dbcf368690bF5aAb1F3dD944dA9)
+- [Badge](https://sepolia.basescan.org/address/0xaE32Df9Fb677aE68C5A1F956761a42e269Ebdc99)
 
 ---
 
