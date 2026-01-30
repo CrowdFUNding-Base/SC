@@ -96,13 +96,13 @@ flowchart TB
 
 The following table summarizes the key architectural decisions in the frontend:
 
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| **Framework** | Next.js 16 (App Router) | Server-side rendering, routing, API routes |
-| **State Management** | React Query + Context | Server state caching, global app state |
-| **Blockchain** | Wagmi + Viem | Type-safe contract interactions |
-| **Authentication** | Privy | Social login + embedded wallets |
-| **Styling** | TailwindCSS 4 | Utility-first responsive design |
+| Layer                | Technology              | Purpose                                    |
+| -------------------- | ----------------------- | ------------------------------------------ |
+| **Framework**        | Next.js 16 (App Router) | Server-side rendering, routing, API routes |
+| **State Management** | React Query + Context   | Server state caching, global app state     |
+| **Blockchain**       | Wagmi + Viem            | Type-safe contract interactions            |
+| **Authentication**   | Privy                   | Social login + embedded wallets            |
+| **Styling**          | TailwindCSS 4           | Utility-first responsive design            |
 
 ### 2. Backend Architecture
 
@@ -143,19 +143,19 @@ flowchart TB
 
 The backend serves multiple critical functions as described in this table:
 
-| Service | Responsibility | Key Features |
-|---------|---------------|--------------|
-| **REST API** | Serve frontend requests | CORS, rate limiting, validation |
-| **Auth Service** | User authentication | Google OAuth, JWT tokens, sessions |
-| **Sync Service** | Cache blockchain data | 30-second polling from Ponder |
-| **Database** | Store off-chain data | User profiles, campaign metadata |
+| Service          | Responsibility          | Key Features                       |
+| ---------------- | ----------------------- | ---------------------------------- |
+| **REST API**     | Serve frontend requests | CORS, rate limiting, validation    |
+| **Auth Service** | User authentication     | Google OAuth, JWT tokens, sessions |
+| **Sync Service** | Cache blockchain data   | 30-second polling from Ponder      |
+| **Database**     | Store off-chain data    | User profiles, campaign metadata   |
 
 ### 3. Smart Contract Architecture
 
 The smart contracts follow a singleton pattern where one contract manages all campaigns, optimizing gas costs and simplifying event indexing.
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph Core["Core Contracts"]
         Campaign["Campaign.sol\n(Singleton)"]
         Badge["Badge.sol\n(NFT Factory)"]
@@ -184,11 +184,11 @@ flowchart LR
 
 Key design decisions for the smart contracts are summarized below:
 
-| Pattern | Implementation | Benefit |
-|---------|---------------|---------|
-| **Singleton** | One Campaign.sol for all | Saves gas, centralized events |
-| **Auto-Swap** | Built into donate() | UX simplification |
-| **Unified Token** | All stored as IDRX | Simplified accounting |
+| Pattern           | Implementation           | Benefit                       |
+| ----------------- | ------------------------ | ----------------------------- |
+| **Singleton**     | One Campaign.sol for all | Saves gas, centralized events |
+| **Auto-Swap**     | Built into donate()      | UX simplification             |
+| **Unified Token** | All stored as IDRX       | Simplified accounting         |
 
 ### 4. Indexer Architecture
 
@@ -227,12 +227,12 @@ flowchart TB
 
 The indexer handles the following events and stores them in structured tables:
 
-| Event | Handler | Stored Data |
-|-------|---------|-------------|
-| `CampaignCreated` | Insert campaign | id, name, owner, target |
-| `DonationReceived` | Insert donation, update balance | donor, amount, timestamp |
-| `FundWithdrawn` | Insert withdrawal, update balance | owner, amount |
-| `BadgeMinted` | Insert badge | tokenId, owner, name |
+| Event              | Handler                           | Stored Data              |
+| ------------------ | --------------------------------- | ------------------------ |
+| `CampaignCreated`  | Insert campaign                   | id, name, owner, target  |
+| `DonationReceived` | Insert donation, update balance   | donor, amount, timestamp |
+| `FundWithdrawn`    | Insert withdrawal, update balance | owner, amount            |
+| `BadgeMinted`      | Insert badge                      | tokenId, owner, name     |
 
 ---
 
@@ -302,25 +302,25 @@ The platform uses different protocols optimized for each type of communication.
 
 This table describes the communication methods between each component:
 
-| From | To | Protocol | Purpose |
-|------|-----|----------|---------|
-| Frontend | Blockchain | JSON-RPC (via Wagmi) | Contract calls, transactions |
-| Frontend | Backend | REST (Axios) | User data, off-chain operations |
-| Backend | Indexer | REST/GraphQL | Fetch indexed blockchain data |
-| Indexer | Blockchain | WebSocket/RPC | Event subscription |
-| Backend | PostgreSQL | TCP (pg driver) | Data persistence |
+| From     | To         | Protocol             | Purpose                         |
+| -------- | ---------- | -------------------- | ------------------------------- |
+| Frontend | Blockchain | JSON-RPC (via Wagmi) | Contract calls, transactions    |
+| Frontend | Backend    | REST (Axios)         | User data, off-chain operations |
+| Backend  | Indexer    | REST/GraphQL         | Fetch indexed blockchain data   |
+| Indexer  | Blockchain | WebSocket/RPC        | Event subscription              |
+| Backend  | PostgreSQL | TCP (pg driver)      | Data persistence                |
 
 ### API Endpoint Categories
 
 The backend exposes the following REST API categories:
 
-| Category | Base Path | Purpose |
-|----------|-----------|---------|
-| Authentication | `/crowdfunding/auth/*` | Login, logout, session |
-| Campaigns | `/crowdfunding/vault/*` | CRUD operations |
-| Contributions | `/crowdfunding/contribution/*` | Donation tracking |
-| Achievements | `/crowdfunding/achievements/*` | Badge management |
-| Sync | `/api/sync/*` | Data synchronization |
+| Category       | Base Path                      | Purpose                |
+| -------------- | ------------------------------ | ---------------------- |
+| Authentication | `/crowdfunding/auth/*`         | Login, logout, session |
+| Campaigns      | `/crowdfunding/vault/*`        | CRUD operations        |
+| Contributions  | `/crowdfunding/contribution/*` | Donation tracking      |
+| Achievements   | `/crowdfunding/achievements/*` | Badge management       |
+| Sync           | `/api/sync/*`                  | Data synchronization   |
 
 ---
 
@@ -355,13 +355,13 @@ flowchart TB
 
 The following table summarizes security measures at each layer:
 
-| Layer | Threat | Mitigation |
-|-------|--------|------------|
-| **Frontend** | XSS, CSRF | CSP headers, secure cookies |
-| **Backend** | SQL Injection | Parameterized queries |
-| **Backend** | Unauthorized access | JWT + session validation |
-| **Smart Contract** | Reentrancy | OpenZeppelin ReentrancyGuard |
-| **Smart Contract** | Token theft | SafeERC20, owner checks |
+| Layer              | Threat              | Mitigation                   |
+| ------------------ | ------------------- | ---------------------------- |
+| **Frontend**       | XSS, CSRF           | CSP headers, secure cookies  |
+| **Backend**        | SQL Injection       | Parameterized queries        |
+| **Backend**        | Unauthorized access | JWT + session validation     |
+| **Smart Contract** | Reentrancy          | OpenZeppelin ReentrancyGuard |
+| **Smart Contract** | Token theft         | SafeERC20, owner checks      |
 
 ---
 
@@ -369,9 +369,9 @@ The following table summarizes security measures at each layer:
 
 The architecture is designed to scale horizontally at each layer:
 
-| Component | Scaling Strategy |
-|-----------|------------------|
-| **Frontend** | Vercel Edge Functions, CDN |
-| **Backend** | Horizontal pod scaling, load balancer |
-| **Database** | PostgreSQL read replicas |
-| **Indexer** | Multiple instances with different block ranges |
+| Component    | Scaling Strategy                               |
+| ------------ | ---------------------------------------------- |
+| **Frontend** | Vercel Edge Functions, CDN                     |
+| **Backend**  | Horizontal pod scaling, load balancer          |
+| **Database** | PostgreSQL read replicas                       |
+| **Indexer**  | Multiple instances with different block ranges |
