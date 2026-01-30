@@ -1,0 +1,22 @@
+# 1. Deployment Address
+
+**Network: Base Sepolia Testnet**
+
+## Smart Contracts
+
+| Contract Name       | Address                                      | Verified Link                                                                               |
+| :------------------ | :------------------------------------------- | :------------------------------------------------------------------------------------------ |
+| **Campaign (Core)** | `0x44e87aa98d721Dbcf368690bF5aAb1F3dD944dA9` | [Basescan](https://sepolia.basescan.org/address/0x44e87aa98d721Dbcf368690bF5aAb1F3dD944dA9) |
+| **Badge (NFT)**     | `0xaE32Df9Fb677aE68C5A1F956761a42e269Ebdc99` | [Basescan](https://sepolia.basescan.org/address/0xaE32Df9Fb677aE68C5A1F956761a42e269Ebdc99) |
+| **MockSwap**        | `0x554366984fD2f5D82c753F91357d80c29F887F17` | [Basescan](https://sepolia.basescan.org/address/0x554366984fD2f5D82c753F91357d80c29F887F17) |
+| **Mock IDRX**       | `0x387551ac55Bb6949d44715D07880f8c6260934B6` | [Basescan](https://sepolia.basescan.org/address/0x387551ac55Bb6949d44715D07880f8c6260934B6) |
+| **Mock USDC**       | `0x1b929eB40670aA4e0D757d45cA9aea2311a25a97` | [Basescan](https://sepolia.basescan.org/address/0x1b929eB40670aA4e0D757d45cA9aea2311a25a97) |
+
+## Backend
+
+- **API Base URL**: `https://api.crowdfunding-game.com` (Example/Staging)
+- **Health Check**: `https://api.crowdfunding-game.com/health`
+
+## Frontend
+
+- **Deployed URL**: `https://crowdfunding-base-hackathon.vercel.app` (Example)

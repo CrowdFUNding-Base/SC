@@ -6,14 +6,15 @@ Welcome to the CrowdFUNding technical documentation! This folder contains all th
 
 ```
 pitching/
-├── Introduction/              # Platform overview and problem-solution
-├── Products/                  # Product documentation
-├── Architecture/              # Technical architecture
-├── How to Run/                # Development guides
-├── Business/                  # Business documentation
-├── Missions/                  # Vision and goals
-├── Deployment/                # Deployment guides
-└── Others/                    # Miscellaneous
+├── introduction/              # Platform overview and problem-solution
+├── products/                  # Product documentation and features
+├── architecture/              # Technical architecture
+├── how-to-run/                # Development guides
+├── business/                  # Business documentation
+├── missions/                  # Vision and goals
+├── deployment/                # Deployment guides
+├── additional-features/       # FAQ and extras
+└── others/                    # Miscellaneous
 ```
 
 ---
@@ -24,30 +25,40 @@ pitching/
 
 Start here to understand the platform:
 
-1. **Overview**: [Introduction/1. Overview.md](./Introduction/1.%20Overview.md)
-2. **Problem**: [Introduction/2. Problem.md](./Introduction/2.%20Problem.md)
-3. **Solution**: [Introduction/3. Solution.md](./Introduction/3.%20Solution.md)
-4. **How it Works**: [Products/8. How CrowdFUNding Works.md](./Products/8.%20How%20CrowdFUNding%20Works.md)
-5. **Tech Stack**: [Products/9. Tech Stack.md](./Products/9.%20Tech%20Stack.md)
+1. **Overview**: [introduction/overview.md](./introduction/overview.md)
+2. **Problem**: [introduction/problem.md](./introduction/problem.md)
+3. **Solution**: [introduction/solution.md](./introduction/solution.md)
+4. **How it Works**: [products/how-crowdfunding-works.md](./products/how-crowdfunding-works.md)
+5. **Tech Stack**: [products/tech-stack.md](./products/tech-stack.md)
 
 ### For Developers
 
 Get up and running quickly:
 
-1. **Quick Start**: [How to Run/5. Quick Start Guide.md](./How%20to%20Run/5.%20Quick%20Start%20Guide.md)
-2. **System Architecture**: [Architecture/2. System Architecture.md](./Architecture/2.%20System%20Architecture.md)
-3. **Smart Contract Guide**: [How to Run/1. Smart Contract Guide.md](./How%20to%20Run/1.%20Smart%20Contract%20Guide.md)
-4. **Backend Guide**: [How to Run/2. Back End Guide.md](./How%20to%20Run/2.%20Back%20End%20Guide.md)
-5. **Frontend Guide**: [How to Run/3. Front End Guide.md](./How%20to%20Run/3.%20Front%20End%20Guide.md)
-6. **Indexer Guide**: [How to Run/4. Indexer Guide.md](./How%20to%20Run/4.%20Indexer%20Guide.md)
+1. **Quick Start**: [how-to-run/quick-start-guide.md](./how-to-run/quick-start-guide.md)
+2. **System Architecture**: [architecture/system-architecture.md](./architecture/system-architecture.md)
+3. **Smart Contract Guide**: [how-to-run/smart-contract-guide.md](./how-to-run/smart-contract-guide.md)
+4. **Backend Guide**: [how-to-run/backend-guide.md](./how-to-run/backend-guide.md)
+5. **Frontend Guide**: [how-to-run/frontend-guide.md](./how-to-run/frontend-guide.md)
+6. **Indexer Guide**: [how-to-run/indexer-guide.md](./how-to-run/indexer-guide.md)
 
 ### For Technical Deep-Dive
 
 Understand the architecture:
 
-1. **Smart Contract Architecture**: [Architecture/1. Smart Contract Architecture.md](./Architecture/1.%20Smart%20Contract%20Architecture.md)
-2. **System Architecture**: [Architecture/2. System Architecture.md](./Architecture/2.%20System%20Architecture.md)
-3. **Data Flow**: [Architecture/3. Data Flow.md](./Architecture/3.%20Data%20Flow.md)
+1. **Smart Contract Architecture**: [architecture/smart-contract-architecture.md](./architecture/smart-contract-architecture.md)
+2. **System Architecture**: [architecture/system-architecture.md](./architecture/system-architecture.md)
+3. **Data Flow**: [architecture/data-flow.md](./architecture/data-flow.md)
+
+### Features Documentation
+
+Detailed documentation for each core feature:
+
+1. **Seedless Access**: [products/feature-seedless-access.md](./products/feature-seedless-access.md)
+2. **Fiat Gateway**: [products/feature-fiat-gateway.md](./products/feature-fiat-gateway.md)
+3. **Borderless Rail**: [products/feature-borderless-rail.md](./products/feature-borderless-rail.md)
+4. **Gamification**: [products/feature-gamification.md](./products/feature-gamification.md)
+5. **Settlement**: [products/feature-settlement.md](./products/feature-settlement.md)
 
 ---
 
