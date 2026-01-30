@@ -1,28 +1,22 @@
 # Seedless Access (The Onramp)
 
-**"Log in like it's Gmail."**
-
----
-
-## User Story
-
 > **As a user**, I can log in instantly using my Google account, bypassing the need to manage a blockchain address or seed phrase.
 
 ---
 
 ## Overview
 
-Seedless Access utilizes **Base OnchainKit** and Account Abstraction to bridge the gap between Web2 and Web3. It allows users to login with familiar credentials (Gmail) while the system creates a secure smart wallet in the background. This approach eliminates the most significant barrier to blockchain adoption: the complexity of wallet management.
+Seedless Access utilizes **Base OnchainKit** and Account Abstraction to bridge Web2 and Web3. Users login with familiar credentials (Gmail) while the system creates a secure smart wallet in the background, eliminating the complexity of wallet management.
 
-Traditional blockchain onboarding requires users to install wallet extensions, generate and securely store 12-24 word seed phrases, understand gas fees, and navigate unfamiliar interfaces. This process has been identified as the primary reason for the 95% drop-off rate in Web3 user acquisition. Seedless Access completely removes these friction points by leveraging OAuth authentication and Multi-Party Computation (MPC) for key management.
+Traditional blockchain onboarding requires wallet extensions, seed phrase storage, gas fee understanding, and unfamiliar interfaces—causing 95% drop-off in Web3 user acquisition. Seedless Access removes these friction points through OAuth authentication and Multi-Party Computation (MPC) for key management.
 
 ### What It Solves
 
-**Onboarding Friction**: The conventional Web3 onboarding process involves multiple high-friction steps including wallet installation, seed phrase backup, and initial funding. Research shows that 80% of potential users abandon the process at the seed phrase step alone. Seedless Access eliminates this entirely by abstracting wallet creation behind familiar Google authentication.
+1. **Onboarding Friction**: Traditional Web3 onboarding requires 6-8 steps including wallet installation, seed phrase backup, and initial funding. Research shows 80% of users abandon at the seed phrase step alone. Seedless Access reduces this to a single Google login click.
 
-**Mass Adoption Barrier**: Indonesia has over 67 million users who are comfortable with digital payments through QRIS and e-wallets like GoPay and OVO, yet less than 5% have interacted with blockchain technology. The primary barrier is not interest but complexity. By matching the login experience to what users already know (Google Sign-In), we unlock this massive potential user base.
+2. **Mass Adoption Barrier**: Indonesia has 67M+ users comfortable with digital payments (QRIS, GoPay, OVO), yet less than 5% have used blockchain. The barrier isn't interest—it's complexity. By matching the familiar Google login experience, we unlock this massive user base.
 
-**Security Concerns**: Seed phrases present a paradox—they must be stored securely enough to prevent theft but accessible enough to recover funds. Most users either store them insecurely (screenshots, cloud storage) or lose them entirely. MPC-based key management eliminates this risk by distributing key shares across multiple secure parties, enabling social recovery without seed phrase vulnerability.
+3. **Security Concerns**: Seed phrases create a paradox—they must be secure enough to prevent theft but accessible enough to recover funds. Most users store them insecurely or lose them entirely. MPC distributes key shares across secure parties, enabling social recovery without seed phrase risks.
 
 ---
 
@@ -92,13 +86,13 @@ By removing the "Web3 Wall," CrowdFUNding ensures that anyone—from a universit
 
 ### Key Benefits
 
-**Zero Friction Entry**: Users never see a wallet address, gas fee prompt, or network selection dialog. These complexities are abstracted away while the user enjoys the security benefits of blockchain technology.
+1. **Zero Friction Entry**: Users never see a wallet address, gas fee prompt, or network selection dialog. These complexities are abstracted away while the user enjoys the security benefits of blockchain technology.
 
-**Familiar User Experience**: The login flow is identical to signing into Gmail, YouTube, or any other Google-integrated service. This familiarity reduces cognitive load and builds immediate trust.
+2. **Familiar User Experience**: The login flow is identical to signing into Gmail, YouTube, or any other Google-integrated service. This familiarity reduces cognitive load and builds immediate trust.
 
-**Security Without Complexity**: MPC-based key management provides institutional-grade security without requiring users to understand cryptographic concepts. Key shares are distributed across multiple secure enclaves, and social recovery enables account restoration through verified identity.
+3. **Security Without Complexity**: MPC-based key management provides institutional-grade security without requiring users to understand cryptographic concepts. Key shares are distributed across multiple secure enclaves, and social recovery enables account restoration through verified identity.
 
-**Progressive Decentralization**: Advanced users who want full control can export their wallet to a traditional self-custody solution. This respects user autonomy while not requiring it for basic functionality.
+4. **Progressive Decentralization**: Advanced users who want full control can export their wallet to a traditional self-custody solution. This respects user autonomy while not requiring it for basic functionality.
 
 ### Impact Metrics
 

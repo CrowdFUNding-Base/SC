@@ -1,30 +1,22 @@
 # Dynamic Proof of Impact (Gamification)
 
-**"Your Impact, Visualized."**
-
----
-
-## User Story
-
 > **As a contributor**, I receive a digital pet on Base that evolves to provide a verifiable on-chain record of my impact, with an optional button to share my progress to social media.
 
 ---
 
 ## Overview
 
-This feature replaces the static "Thank You" email with a living, breathing **Digital Pet (NFT)**. This pet evolves based on the user's donation behavior—growing from an egg to a mature companion as the donor maintains their "Impact Streak." The gamification layer transforms one-time donors into recurring contributors by leveraging psychological principles proven effective in mobile gaming and social fitness apps.
+This feature replaces static "Thank You" emails with a living **Digital Pet (NFT)** that evolves based on donation behavior. The pet grows from an egg to a mature companion as the donor maintains their "Impact Streak," transforming one-time donors into recurring contributors.
 
-The core insight driving this feature is that traditional philanthropy treats donations as terminal transactions. A donor gives money, receives a receipt or acknowledgment, and the relationship effectively ends until the next fundraising appeal. This creates the "donor fatigue" phenomenon where 81% of first-time donors never return. By introducing game mechanics—progression, collection, social status—we transform giving from a single transaction into an ongoing relationship.
-
-Technically, the Digital Pet is an ERC-721 NFT stored on the Base blockchain. Its metadata (appearance, evolution stage, XP points) can be updated by the protocol as the donor's activity changes. This creates a persistent, ownable record of philanthropic activity that exists independent of our platform.
+Traditional philanthropy treats donations as terminal transactions—81% of first-time donors never return. By introducing game mechanics (progression, collection, social status), we transform giving from a single transaction into an ongoing relationship using psychological principles proven in mobile gaming.
 
 ### What It Solves
 
-**Donor Fatigue and Low Retention**: Industry data shows a 19% retention rate for first-time donors. This means platforms must constantly acquire new donors to replace the 81% who leave—an expensive and unsustainable model. The gamification layer introduces variable rewards, progression mechanics, and loss aversion that have been proven to drive 65%+ retention in gaming contexts.
+1. **Donor Fatigue**: Industry data shows only 19% of first-time donors return, forcing platforms to constantly acquire new donors—an expensive and unsustainable model. The gamification layer introduces variable rewards, progression mechanics, and loss aversion that have been proven to drive 65%+ retention in gaming contexts.
 
-**Economic Stagnation**: Indonesians spend $445 million annually on virtual goods in mobile games—cosmetic items that provide no real-world value. CrowdFUNding redirects this spending pattern toward social impact by offering the same psychological rewards (status, collection, progression) attached to philanthropic actions. The NFT pet becomes a "cosmetic item" that happens to be funded by charitable giving.
+2. **Economic Stagnation**: Indonesians spend $445 million annually on virtual goods in mobile games—cosmetic items with no real-world value. CrowdFUNding redirects this spending pattern toward social impact by offering the same psychological rewards (status, collection, progression) attached to philanthropic actions.
 
-**Engagement Cliff**: Traditional platforms offer no reason to return between donation appeals. Even satisfied donors simply forget about the platform until the next email campaign. The pet mechanic creates daily or weekly check-in incentives—"How is my pet doing? Can I evolve it this week?"—maintaining continuous engagement.
+3. **Engagement Cliff**: Traditional platforms have no reason for donors to return between fundraising appeals. Even satisfied donors simply forget about the platform until the next email campaign. The pet mechanic creates daily/weekly check-in incentives—"How is my pet doing? Can I evolve it this week?"—maintaining continuous engagement.
 
 ---
 
@@ -219,15 +211,15 @@ The gamification layer shifts the psychology of giving from "loss" (giving money
 
 ### Key Benefits
 
-**Emotional Investment**: The pet is not just a receipt—it's a companion that donors nurture over time. This emotional attachment creates intrinsic motivation to continue giving, reducing reliance on external fundraising campaigns.
+1. **Emotional Investment**: The pet is not just a receipt—it's a companion that donors nurture over time. This emotional attachment creates intrinsic motivation to continue giving.
 
-**Social Proof**: An evolved, rare pet signals status within the community. Public leaderboards and evolution stage displays create positive social pressure to maintain giving habits.
+2. **Social Proof**: An evolved, rare pet signals status within the community. Public leaderboards and evolution stage displays create positive social pressure to maintain giving habits.
 
-**Viral Mechanics**: Every share card posted to social media is free advertising for the platform. The visual appeal of the evolving pets encourages sharing, while the impact stats provide social proof to the poster's network.
+3. **Viral Mechanics**: Every share card posted to social media is free advertising for the platform. The visual appeal of the evolving pets encourages sharing.
 
-**Sustained Engagement**: Without gamification, platforms only contact donors during fundraising appeals. The streak system creates daily or weekly touchpoints, maintaining the platform in the donor's mind.
+4. **Sustained Engagement**: Without gamification, platforms only contact donors during fundraising appeals. The streak system creates daily or weekly touchpoints.
 
-**True Ownership**: The NFT exists on Base blockchain, not in our database. Donors can display their pets in any NFT-compatible wallet, trade them on OpenSea, or simply hold them as permanent proof of their philanthropy.
+5. **True Ownership**: The NFT exists on Base blockchain, not in our database. Donors can display their pets in any NFT-compatible wallet or trade them on OpenSea.
 
 ### Psychological Drivers
 

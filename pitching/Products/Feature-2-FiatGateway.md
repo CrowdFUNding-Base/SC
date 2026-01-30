@@ -1,30 +1,22 @@
 # Instant Fiat Gateway (Local Rail)
 
-**"Scan QRIS, Settle On-Chain."**
-
----
-
-## User Story
-
 > **As a local donor**, I can scan a QRIS code with my favorite banking app to send funds that settle instantly as IDRX on the Base network.
 
 ---
 
 ## Overview
 
-The Instant Fiat Gateway allows local donors to use their favorite daily banking apps (GoPay, OVO, BCA, Dana, ShopeePay, and 50+ other QRIS-compatible applications) to contribute to campaigns. The innovation lies in what happens behind the scenes: the fiat payment is instantly converted and settled as **IDRX** on the Base network.
+The Instant Fiat Gateway allows local donors to use their favorite banking apps (GoPay, OVO, BCA, Dana, ShopeePay) to contribute via QRIS. The fiat payment is instantly converted and settled as **IDRX** on the Base network, bypassing traditional 3-5 day settlement delays.
 
-This feature is built on the insight that changing user behavior is expensive and often impossible. Over 100 million Indonesians scan QRIS codes daily for everything from street food to online shopping. Rather than asking these users to learn cryptocurrency, we bring cryptocurrency to them by connecting their existing payment habits to blockchain settlement.
-
-The technical architecture combines traditional payment gateway webhooks with IDRX minting infrastructure. When a donor scans a QRIS code and completes payment through their banking app, our backend receives instant confirmation, triggers IDRX minting, and credits the campaign's on-chain vault—all within seconds of the original payment.
+This feature leverages the insight that 100+ million Indonesians scan QRIS codes daily. Rather than asking users to learn cryptocurrency, we bring cryptocurrency to them by connecting existing payment habits to blockchain settlement.
 
 ### What It Solves
 
-**Financial Leakage**: Traditional cross-border and high-friction payment gateways extract an average of 12.66% from each transaction through a combination of platform fees, payment processing fees, currency conversion spreads, and withdrawal fees. For a donation of Rp 100,000, only Rp 87,340 would typically reach the recipient. The IDRX-based settlement eliminates these intermediary costs, as the blockchain transaction fee (gas) is negligible.
+1. **Financial Leakage**: Traditional crowdfunding platforms extract 12.66% on average through platform fees (5%), payment processing (2-3%), currency conversion (2-3%), and withdrawal fees (2%). For a Rp 100,000 donation, only Rp 87,340 reaches recipients. IDRX settlement eliminates these intermediary costs entirely.
 
-**Settlement Delays**: Conventional donation platforms operate on bank clearing schedules, meaning funds may take 3-5 business days to become available to campaign creators. In emergency situations—natural disasters, medical emergencies—this delay can be the difference between effective intervention and arriving too late. IDRX settlement is instant; funds are available in the campaign vault within seconds of payment confirmation.
+2. **Settlement Delays**: Conventional platforms operate on bank clearing schedules—3-5 business days before funds become available. In emergencies like natural disasters or medical crises, this delay can be the difference between effective intervention and arriving too late. IDRX settlement is instant.
 
-**Behavioral Friction**: Asking users to adopt new payment methods dramatically reduces conversion rates. Studies show that each additional step in a checkout process reduces completion by 10-15%. By accepting QRIS—which users already know and trust—we eliminate adoption friction entirely.
+3. **Behavioral Friction**: Each additional step in a payment process reduces completion by 10-15%. Asking users to learn new payment methods dramatically reduces conversion. By accepting QRIS—which 100M+ Indonesians use daily—we eliminate adoption friction entirely.
 
 ---
 
@@ -131,15 +123,15 @@ This feature meets the user where they are. It does not ask donors to change the
 
 ### Key Benefits
 
-**Zero Behavior Change**: Donors use the same banking apps they use for groceries, transportation, and online shopping. There is no new app to install, no account to create, and no learning curve.
+1. **Zero Behavior Change**: Donors use the same banking apps they use for groceries, transportation, and online shopping. There is no new app to install, no account to create, and no learning curve.
 
-**Instant Settlement**: Campaign creators can access funds within seconds of donation, not days. This is critical for time-sensitive causes like medical emergencies or disaster relief.
+2. **Instant Settlement**: Campaign creators can access funds within seconds of donation, not days. This is critical for time-sensitive causes like medical emergencies or disaster relief.
 
-**Full Transparency**: Every transaction is recorded on the Base blockchain. Donors can verify that their funds reached the campaign, and auditors can examine the complete transaction history without requesting access from the platform.
+3. **Full Transparency**: Every transaction is recorded on the Base blockchain. Donors can verify that their funds reached the campaign, and auditors can examine the complete transaction history without requesting access from the platform.
 
-**Fee Elimination**: By using IDRX for settlement, we bypass the traditional payment gateway fee structure entirely. The only cost is the minimal gas fee on Base (typically less than $0.01).
+4. **Fee Elimination**: By using IDRX for settlement, we bypass the traditional payment gateway fee structure entirely. The only cost is the minimal gas fee on Base (typically less than $0.01).
 
-**Stable Value**: IDRX is pegged 1:1 to Indonesian Rupiah, providing price stability without the volatility concerns typically associated with cryptocurrency. Donors know exactly how much of their contribution will reach the campaign.
+5. **Stable Value**: IDRX is pegged 1:1 to Indonesian Rupiah, providing price stability without the volatility concerns typically associated with cryptocurrency.
 
 ### Impact Metrics
 

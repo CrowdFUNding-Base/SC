@@ -1,30 +1,22 @@
 # Borderless Liquidity Rail (Global Rail)
 
-**"Donate USDC, Receive IDRX."**
-
----
-
-## User Story
-
 > **As a global supporter**, I can donate USDC or other stablecoins on Base and have it automatically converted to IDRX to protect the recipient from volatility.
 
 ---
 
 ## Overview
 
-The Borderless Liquidity Rail is a universal adapter for global donations. It allows international supporters to donate using **USDC**, **ETH/BASE**, or other supported tokens on the Base network. The protocol automatically swaps these assets into **IDRX** in a single atomic transaction, ensuring campaign creators receive stable, local-currency-denominated funds.
+The Borderless Liquidity Rail enables international supporters to donate using **USDC**, **ETH/BASE**, or other tokens on Base. The protocol automatically swaps these assets into **IDRX** in a single atomic transaction, ensuring campaign creators receive stable, local-currency-denominated funds.
 
-This feature addresses a fundamental problem in global philanthropy: currency mismatch. International donors hold assets in USD, EUR, or global cryptocurrencies, while local recipients need Indonesian Rupiah to pay for supplies, labor, and services. Traditional solutions involve multiple intermediaries, each extracting fees and adding delays. The Borderless Liquidity Rail collapses this process into a single on-chain transaction.
-
-The technical innovation lies in atomic swap composition. When a donor sends USDC to a campaign, the Campaign.sol contract automatically routes the tokens through MockSwap.sol, converts them to IDRX at the current exchange rate, and credits the campaign balance—all within a single transaction. If any step fails, the entire transaction reverts, ensuring donors never lose funds to partial failures.
+This feature addresses the fundamental currency mismatch in global philanthropy: international donors hold USD while local recipients need Indonesian Rupiah. Traditional solutions involve multiple intermediaries extracting fees and adding delays. The Borderless Liquidity Rail collapses this into a single on-chain transaction.
 
 ### What It Solves
 
-**Volatility Risk**: Many NGOs and campaign creators are hesitant to accept cryptocurrency donations because of price volatility. A donation of 100 USDC might be worth $100 today but $85 when withdrawn next week. By converting all donations to IDRX (pegged to IDR) at the moment of receipt, we eliminate this risk. Campaign creators always know exactly how much IDR-equivalent value they have.
+1. **Volatility Risk**: Many NGOs hesitate to accept crypto donations because a 100 USDC donation today might be worth $85 when withdrawn next week. By converting all donations to IDRX (pegged 1:1 to IDR) at the moment of receipt, we eliminate this risk. Campaign creators always know exactly how much value they have.
 
-**Global Access Barriers**: The World Bank reports that cross-border remittance fees average 6.2% globally, with some corridors exceeding 15%. For charitable donations, these fees represent resources diverted from their intended purpose. The Borderless Liquidity Rail enables a donor in New York to support a campaign in Jakarta with transaction costs under 1%.
+2. **Global Access Barriers**: The World Bank reports cross-border remittance fees average 6.2% globally, with some corridors exceeding 15%. For charitable donations, these fees represent resources diverted from their purpose. The Borderless Liquidity Rail enables a donor in New York to support a campaign in Jakarta with transaction costs under 1%.
 
-**Currency Fragmentation**: Without automated conversion, campaign managers would need to handle multiple currencies—tracking balances in USDC, ETH, IDRX, and potentially others. This complexity makes accounting difficult and exposes the campaign to errors. By converting everything to IDRX at donation time, we provide unified accounting in a single currency.
+3. **Currency Fragmentation**: Without automated conversion, campaign managers must track balances in USDC, ETH, IDRX, and potentially others. This complexity makes accounting difficult and exposes campaigns to errors. By converting everything to IDRX at donation time, we provide unified accounting in a single currency.
 
 ---
 
@@ -199,19 +191,19 @@ The key differentiator is the combination of multi-currency acceptance with stab
 
 ## Why It Matters
 
-The Borderless Liquidity Rail creates a true "Global-Local" bridge. A donor in New York can support a flood relief victim in Jakarta instantly, with the recipient getting spendable local currency value immediately. This eliminates the traditional trade-off between global reach and local utility.
+The Borderless Liquidity Rail creates a true "Global-Local" bridge. A donor in New York can support a flood relief victim in Jakarta instantly, with the recipient getting spendable local currency value immediately.
 
 ### Key Benefits
 
-**Zero Volatility Risk**: Campaign creators never need to worry about cryptocurrency price fluctuations. All donations are converted to IDRX at receipt, locking in the Rupiah value immediately.
+1. **Zero Volatility Risk**: Campaign creators never need to worry about cryptocurrency price fluctuations. All donations are converted to IDRX at receipt, locking in the Rupiah value immediately.
 
-**Global Participation**: Anyone with USDC, ETH, or BASE can donate to Indonesian causes without needing to acquire IDRX first. This dramatically expands the potential donor pool beyond those who already hold Indonesian-related assets.
+2. **Global Participation**: Anyone with USDC, ETH, or BASE can donate to Indonesian causes without needing to acquire IDRX first. This dramatically expands the potential donor pool.
 
-**Unified Accounting**: Finance teams don't need to track multiple currencies or token types. All campaign balances are denominated in IDRX, simplifying reporting and planning.
+3. **Unified Accounting**: Finance teams don't need to track multiple currencies or token types. All campaign balances are denominated in IDRX, simplifying reporting and planning.
 
-**Atomic Transactions**: The swap and donation happen in a single blockchain transaction. There's no risk of a swap succeeding but donation failing, or vice versa. Either the entire operation completes or nothing happens.
+4. **Atomic Transactions**: The swap and donation happen in a single blockchain transaction. There's no risk of a swap succeeding but donation failing, or vice versa.
 
-**Transparent Rates**: Exchange rates are stored on-chain and can be verified by anyone. Unlike traditional forex where banks set opaque spreads, all rate calculations are visible and auditable.
+5. **Transparent Rates**: Exchange rates are stored on-chain and can be verified by anyone. Unlike traditional forex where banks set opaque spreads, all rate calculations are visible and auditable.
 
 ### Impact Metrics
 

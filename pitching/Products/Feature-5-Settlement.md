@@ -1,30 +1,22 @@
 # Automated Bank Settlement (The Offramp)
 
-**"Crypto to Rupiah, Instantly."**
-
----
-
-## User Story
-
 > **As a campaign creator**, I can have IDRX funds sent directly from the Campaign Vault to my local bank account in Rupiah, ensuring the money is ready for real-world use.
 
 ---
 
 ## Overview
 
-Automated Settlement is the final leg of the journey, solving the "last mile" problem that has historically made cryptocurrency impractical for real-world charitable operations. Once a campaign reaches its goal or verified milestone, the smart contract permits the off-ramping of IDRX directly to the campaign creator's local bank account in Indonesian Rupiah (IDR).
+Automated Settlement solves the "last mile" problem by enabling off-ramping of IDRX directly to local bank accounts in Indonesian Rupiah. The smart contract enforces ownership verification, balance checks, and reentrancy protection—replacing trust-based platform approval with code-based verification.
 
-The importance of this feature cannot be overstated. Blockchain transparency means nothing if campaign creators cannot use the funds to purchase medicine, building materials, or food supplies. Local vendors in Indonesia accept Rupiah, not cryptocurrency. By providing seamless conversion from on-chain IDRX to bank-deposited IDR, we complete the circle from digital donation to real-world impact.
-
-The technical design prioritizes security through smart contract enforcement. Rather than relying on platform administrators to approve withdrawals (introducing trust requirements and potential for abuse), the Campaign.sol contract enforces ownership verification, balance checks, and reentrancy protection. Only the wallet that created the campaign can withdraw funds, and only up to the available balance.
+Blockchain transparency means nothing if campaign creators cannot use funds to purchase medicine or building materials. By providing seamless conversion from on-chain IDRX to bank-deposited IDR, we complete the circle from digital donation to real-world impact.
 
 ### What It Solves
 
-**The "Last Mile" Problem**: Cryptocurrency is useless if it cannot buy rice or medicine. Many blockchain charity initiatives have failed at this final step—either requiring campaign creators to understand cryptocurrency exchanges or leaving funds stranded in wallets with no clear path to utility. Automated Settlement provides a one-click path from on-chain value to bank-deposited Rupiah.
+1. **Last Mile Problem**: Cryptocurrency is useless if it cannot buy rice or medicine. Many blockchain charity initiatives have failed here—either requiring campaign creators to understand crypto exchanges or leaving funds stranded. Automated Settlement provides a one-click path from on-chain value to bank-deposited Rupiah.
 
-**Trust and Misuse Prevention**: Traditional crowdfunding platforms rely on manual review processes to prevent fund misuse. These processes are slow, inconsistent, and have failed numerous times (as evidenced by the 176 Indonesian philanthropic entities investigated by PPATK). Smart contract settlement enforces rules mathematically: only the registered owner can withdraw, and only the available balance can be claimed.
+2. **Trust and Misuse**: Traditional crowdfunding relies on manual review processes that are slow, inconsistent, and have failed numerous times (176 Indonesian philanthropic entities investigated by PPATK). Smart contract settlement enforces rules mathematically—only the registered owner can withdraw, and only the available balance.
 
-**Recipient Complexity**: Campaign creators are typically focused on their cause—disaster relief, medical treatment, community development—not cryptocurrency mechanics. Requiring them to understand wallet management, gas fees, and exchange trading would exclude many who most need fundraising tools. The offramp abstracts all crypto complexity behind a simple "withdraw to bank" interface.
+3. **Recipient Complexity**: Campaign creators are focused on their cause—disaster relief, medical treatment, community development—not cryptocurrency mechanics. Requiring them to understand wallet management, gas fees, and exchange trading would exclude many who most need these tools. The offramp abstracts all complexity behind a simple interface.
 
 ---
 
@@ -188,19 +180,19 @@ While the withdrawal fee is comparable across platforms, CrowdFUNding offers sig
 
 ## Why It Matters
 
-The Automated Settlement feature completes the loop. It ensures that while the technology is "Onchain," the impact is strictly "Real World," settling in the currency that local vendors accept. This is the critical bridge between blockchain efficiency and practical utility.
+The Automated Settlement feature completes the loop—ensuring that while technology is "Onchain," impact is strictly "Real World," settling in the currency that local vendors accept.
 
 ### Key Benefits
 
-**Real-World Utility**: Funds are usable immediately for actual expenses—medicine, construction materials, food supplies, emergency aid. The conversion to IDR in a local bank account means campaign creators can pay vendors, contractors, and suppliers without any cryptocurrency knowledge.
+1. **Real-World Utility**: Funds are usable immediately for actual expenses—medicine, construction materials, food supplies, emergency aid. Campaign creators can pay vendors without any cryptocurrency knowledge.
 
-**Trust Through Code**: Smart contract conditions prevent premature or unauthorized withdrawals. Unlike traditional platforms where internal policies can be changed or enforcement can be inconsistent, the code executes the same way every time.
+2. **Trust Through Code**: Smart contract conditions prevent premature or unauthorized withdrawals. Unlike traditional platforms where policies can change, the code executes the same way every time.
 
-**Full Transparency**: Every withdrawal is recorded on the Base blockchain with timestamps, amounts, and addresses. Donors can verify that funds reached the campaign creator. Auditors can examine the complete transaction history without requesting special access.
+3. **Full Transparency**: Every withdrawal is recorded on the Base blockchain with timestamps, amounts, and addresses. Donors can verify that funds reached the campaign creator.
 
-**No Platform Lock-in**: Funds flow to standard Indonesian bank accounts, not platform-specific wallets. Campaign creators maintain full control over their funds once withdrawn and can use any banking services they prefer.
+4. **No Platform Lock-in**: Funds flow to standard Indonesian bank accounts, not platform-specific wallets. Campaign creators maintain full control once withdrawn.
 
-**Instant Liquidity**: There is no arbitrary "processing" or "review" period. If the smart contract conditions are met, the withdrawal proceeds immediately. This is critical for emergency situations where delays could have serious consequences.
+5. **Instant Liquidity**: No arbitrary "processing" or "review" period. If smart contract conditions are met, withdrawal proceeds immediately—critical for emergencies.
 
 ### Security Guarantees
 
