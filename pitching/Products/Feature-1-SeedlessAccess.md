@@ -8,7 +8,7 @@ Seedless Access utilizes **Base OnchainKit** and Account Abstraction to bridge t
 
 ## What it solves
 
-- **Onboarding Friction**: Eliminates the "install wallet $\rightarrow$ save seed phrase" hurdle.
+- **Onboarding Friction**: Eliminates the "install wallet → save seed phrase" hurdle.
 - **Mass Adoption**: Unlocks the 67M+ Indonesian user base who are familiar with QRIS/E-Wallets but not Crypto.
 
 ## Technical Flow

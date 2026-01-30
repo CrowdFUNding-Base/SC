@@ -1,8 +1,8 @@
-# 📚 CrowdFUNding Pitching Documentation
+# CrowdFUNding Pitching Documentation
 
 Welcome to the CrowdFUNding technical documentation! This folder contains all the information needed to understand, present, and run our gamified crowdfunding platform.
 
-## 📁 Folder Structure
+## Folder Structure
 
 ```
 pitching/
@@ -18,7 +18,7 @@ pitching/
 
 ---
 
-## 🚀 Quick Navigation
+## Quick Navigation
 
 ### For Judges/Evaluators
 
@@ -51,7 +51,7 @@ Understand the architecture:
 
 ---
 
-## 🎯 Key Highlights
+## Key Highlights
 
 ### Why CrowdFUNding?
 
@@ -84,7 +84,7 @@ Understand the architecture:
 
 ---
 
-## 📖 Document Conventions
+## Document Conventions
 
 All documentation in this folder follows these conventions:
 
@@ -96,10 +96,10 @@ All documentation in this folder follows these conventions:
 
 ---
 
-## 📞 Contact
+## Contact
 
 For questions about the technical implementation, please reach out to the CrowdFUNding team.
 
 ---
 
-Made with ❤️ by the CrowdFUNding Team
+Made with love by the CrowdFUNding Team
