@@ -151,7 +151,7 @@ The following table shows the exchange rates configured on the testnet deploymen
 
 **Example Calculation**: A donation of 100 USDC would convert as follows:
 - 100 USDC at $1 = $100 equivalent
-- $100 at Rp 16,775/$ = approximately 1,677,500 IDRX
+- $100 at Rp 16.775 = approximately 1,677,500 IDRX
 - Campaign receives exactly 1,677,500 IDRX (Rp 16,775,000)
 
 ---
