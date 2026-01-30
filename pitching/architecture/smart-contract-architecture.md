@@ -49,12 +49,12 @@ This contract is the central hub of the CrowdFUNding platform. It manages all cr
 
 The following table describes the main state variables:
 
-| Variable | Type | Description |
-|----------|------|-------------|
-| `_campaigns` | `mapping(uint256 => CampaignStruct)` | Stores all campaign data by ID |
-| `_campaignIds` | `uint256` | Counter for generating unique campaign IDs |
-| `mockSwap` | `MockSwap` | Reference to the token swap router |
-| `storageToken` | `address` | Address of IDRX (the unified storage token) |
+| Variable       | Type                                 | Description                                 |
+| -------------- | ------------------------------------ | ------------------------------------------- |
+| `_campaigns`   | `mapping(uint256 => CampaignStruct)` | Stores all campaign data by ID              |
+| `_campaignIds` | `uint256`                            | Counter for generating unique campaign IDs  |
+| `mockSwap`     | `MockSwap`                           | Reference to the token swap router          |
+| `storageToken` | `address`                            | Address of IDRX (the unified storage token) |
 
 #### CampaignStruct
 
@@ -75,13 +75,13 @@ struct CampaignStruct {
 
 The Campaign contract exposes the following public functions:
 
-| Function | Access | Description |
-|----------|--------|-------------|
-| `createCampaign(name, creatorName, targetAmount)` | Public | Creates a new campaign and assigns a unique ID |
-| `donate(campaignId)` | Public Payable | Donate with BASE native token (auto-swaps to IDRX) |
-| `donate(campaignId, amount, tokenIn)` | Public | Donate with any supported ERC20 token |
-| `withdraw(campaignId, amount)` | Owner Only | Withdraw IDRX from campaign balance |
-| `getCampaignInfo(campaignId)` | View | Returns complete campaign details |
+| Function                                          | Access         | Description                                        |
+| ------------------------------------------------- | -------------- | -------------------------------------------------- |
+| `createCampaign(name, creatorName, targetAmount)` | Public         | Creates a new campaign and assigns a unique ID     |
+| `donate(campaignId)`                              | Public Payable | Donate with BASE native token (auto-swaps to IDRX) |
+| `donate(campaignId, amount, tokenIn)`             | Public         | Donate with any supported ERC20 token              |
+| `withdraw(campaignId, amount)`                    | Owner Only     | Withdraw IDRX from campaign balance                |
+| `getCampaignInfo(campaignId)`                     | View           | Returns complete campaign details                  |
 
 #### Events
 
@@ -89,25 +89,25 @@ The contract emits these events for indexing and frontend updates:
 
 ```solidity
 event CampaignCreated(
-    uint256 id, 
-    string name, 
-    string creatorName, 
-    address owner, 
-    uint256 targetAmount, 
+    uint256 id,
+    string name,
+    string creatorName,
+    address owner,
+    uint256 targetAmount,
     uint256 creationTime
 );
 
 event DonationReceived(
-    uint256 id, 
-    address donor, 
+    uint256 id,
+    address donor,
     uint256 amount
 );
 
 event FundWithdrawn(
-    uint256 id, 
-    string name, 
-    address owner, 
-    string creatorName, 
+    uint256 id,
+    string name,
+    address owner,
+    string creatorName,
     uint256 amount
 );
 ```
@@ -142,12 +142,12 @@ This contract implements achievement badges as ERC721 NFTs, adding the "FUN" to 
 
 #### Key Components
 
-| Component | Type | Description |
-|-----------|------|-------------|
-| Standard | ERC721 | Non-Fungible Token standard for unique badges |
-| Inheritance | ERC721, Ownable | Token with owner-only minting |
-| `_tokenIds` | Counter | Auto-incrementing token IDs |
-| `_badgeInfo` | mapping | Stores badge metadata |
+| Component    | Type            | Description                                   |
+| ------------ | --------------- | --------------------------------------------- |
+| Standard     | ERC721          | Non-Fungible Token standard for unique badges |
+| Inheritance  | ERC721, Ownable | Token with owner-only minting                 |
+| `_tokenIds`  | Counter         | Auto-incrementing token IDs                   |
+| `_badgeInfo` | mapping         | Stores badge metadata                         |
 
 #### BadgeInfo Structure
 
@@ -162,10 +162,10 @@ struct BadgeInfo {
 
 #### Functions
 
-| Function | Access | Description |
-|----------|--------|-------------|
-| `mintBadge(to, name, description)` | Owner Only | Mint a new badge NFT to a user |
-| `getBadgeInfo(tokenId)` | View | Returns badge name and description |
+| Function                           | Access     | Description                        |
+| ---------------------------------- | ---------- | ---------------------------------- |
+| `mintBadge(to, name, description)` | Owner Only | Mint a new badge NFT to a user     |
+| `getBadgeInfo(tokenId)`            | View       | Returns badge name and description |
 
 ### 3. MockSwap.sol - Token Exchange Router
 
@@ -176,7 +176,7 @@ This contract handles automatic token conversions for multi-currency donations. 
 The following diagram shows how the swap calculation works:
 
 ```mermaid
-flowchart LR
+flowchart TB
     Input["Input Token\n(ETH/USDC)"] --> Normalize["1. Normalize to\n18 decimals"]
     Normalize --> Convert["2. Convert to\nBASE equivalent"]
     Convert --> Apply["3. Apply IDRX\nrate"]
@@ -186,21 +186,21 @@ flowchart LR
 
 #### Functions
 
-| Function | Description |
-|----------|-------------|
-| `addToken(name, tokenAddress, decimals, ratePerETH)` | Register a new token with its exchange rate |
-| `swap(tokenIn, tokenOut, amountIn)` | Swap between two ERC20 tokens |
-| `swapETHForToken(tokenOut)` | Swap native ETH for an ERC20 token |
-| `getQuote(tokenIn, tokenOut, amountIn)` | Get expected output amount without executing |
+| Function                                             | Description                                  |
+| ---------------------------------------------------- | -------------------------------------------- |
+| `addToken(name, tokenAddress, decimals, ratePerETH)` | Register a new token with its exchange rate  |
+| `swap(tokenIn, tokenOut, amountIn)`                  | Swap between two ERC20 tokens                |
+| `swapETHForToken(tokenOut)`                          | Swap native ETH for an ERC20 token           |
+| `getQuote(tokenIn, tokenOut, amountIn)`              | Get expected output amount without executing |
 
 #### Exchange Rates (Testnet)
 
 The following exchange rates are configured for the testnet:
 
 | Token | Rate per 1 BASE (ETH) | Decimals |
-|-------|----------------------|----------|
-| IDRX  | 268,400 IDRX         | 2        |
-| USDC  | 0.16 USDC            | 6        |
+| ----- | --------------------- | -------- |
+| IDRX  | 268,400 IDRX          | 2        |
+| USDC  | 0.16 USDC             | 6        |
 
 ### 4. Mock Token Contracts
 
@@ -244,6 +244,7 @@ flowchart LR
 ```
 
 **Benefits:**
+
 - Saves gas on deployment
 - Centralized event indexing
 - Easier upgrades and maintenance
@@ -254,6 +255,7 @@ flowchart LR
 All donations are automatically converted to IDRX regardless of the input currency:
 
 **Benefits:**
+
 - Simplifies accounting for campaign creators
 - Predictable withdrawal amounts
 - No forex complexity
@@ -264,6 +266,7 @@ All donations are automatically converted to IDRX regardless of the input curren
 The Badge contract acts as a factory that mints unique NFTs:
 
 **Benefits:**
+
 - Single contract manages all badges
 - Consistent metadata structure
 - Centralized access control
@@ -272,25 +275,25 @@ The Badge contract acts as a factory that mints unique NFTs:
 
 The following contracts are deployed and verified on Base Sepolia:
 
-| Contract | Address | Explorer |
-|----------|---------|----------|
+| Contract      | Address                                      | Explorer                                                                                |
+| ------------- | -------------------------------------------- | --------------------------------------------------------------------------------------- |
 | **Mock IDRX** | `0x387551ac55Bb6949d44715D07880f8c6260934B6` | [View](https://sepolia.basescan.org/address/0x387551ac55Bb6949d44715D07880f8c6260934B6) |
 | **Mock USDC** | `0x1b929eB40670aA4e0D757d45cA9aea2311a25a97` | [View](https://sepolia.basescan.org/address/0x1b929eB40670aA4e0D757d45cA9aea2311a25a97) |
-| **MockSwap** | `0x554366984fD2f5D82c753F91357d80c29F887F17` | [View](https://sepolia.basescan.org/address/0x554366984fD2f5D82c753F91357d80c29F887F17) |
-| **Campaign** | `0x44e87aa98d721Dbcf368690bF5aAb1F3dD944dA9` | [View](https://sepolia.basescan.org/address/0x44e87aa98d721Dbcf368690bF5aAb1F3dD944dA9) |
-| **Badge** | `0xaE32Df9Fb677aE68C5A1F956761a42e269Ebdc99` | [View](https://sepolia.basescan.org/address/0xaE32Df9Fb677aE68C5A1F956761a42e269Ebdc99) |
+| **MockSwap**  | `0x554366984fD2f5D82c753F91357d80c29F887F17` | [View](https://sepolia.basescan.org/address/0x554366984fD2f5D82c753F91357d80c29F887F17) |
+| **Campaign**  | `0x44e87aa98d721Dbcf368690bF5aAb1F3dD944dA9` | [View](https://sepolia.basescan.org/address/0x44e87aa98d721Dbcf368690bF5aAb1F3dD944dA9) |
+| **Badge**     | `0xaE32Df9Fb677aE68C5A1F956761a42e269Ebdc99` | [View](https://sepolia.basescan.org/address/0xaE32Df9Fb677aE68C5A1F956761a42e269Ebdc99) |
 
 ## Security Considerations
 
 The contracts implement multiple security measures to protect user funds:
 
-| Threat | Mitigation | Implementation |
-|--------|------------|----------------|
-| **Reentrancy** | ReentrancyGuard modifier | Applied to `donate()` and `withdraw()` |
-| **Token Transfer Failures** | SafeERC20 library | All `transfer()` calls use `safeTransfer()` |
-| **Unauthorized Withdrawal** | Owner validation | `require(msg.sender == campaign.owner)` |
-| **Integer Overflow** | Solidity 0.8+ | Built-in overflow checks |
-| **Front-running** | Minimal MEV exposure | Accept-based logic, no price-sensitive operations |
+| Threat                      | Mitigation               | Implementation                                    |
+| --------------------------- | ------------------------ | ------------------------------------------------- |
+| **Reentrancy**              | ReentrancyGuard modifier | Applied to `donate()` and `withdraw()`            |
+| **Token Transfer Failures** | SafeERC20 library        | All `transfer()` calls use `safeTransfer()`       |
+| **Unauthorized Withdrawal** | Owner validation         | `require(msg.sender == campaign.owner)`           |
+| **Integer Overflow**        | Solidity 0.8+            | Built-in overflow checks                          |
+| **Front-running**           | Minimal MEV exposure     | Accept-based logic, no price-sensitive operations |
 
 ### Security Flow
 

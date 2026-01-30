@@ -155,7 +155,7 @@ The backend serves multiple critical functions as described in this table:
 The smart contracts follow a singleton pattern where one contract manages all campaigns, optimizing gas costs and simplifying event indexing.
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Core["Core Contracts"]
         Campaign["Campaign.sol\n(Singleton)"]
         Badge["Badge.sol\n(NFT Factory)"]
