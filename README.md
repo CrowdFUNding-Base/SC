@@ -1,4 +1,4 @@
-# 🎮 CrowdFUNding - Gamified Crowdfunding Smart Contracts
+# CrowdFUNding - Gamified Crowdfunding Smart Contracts
 
 <p align="center">
   <img src="https://img.shields.io/badge/Solidity-0.8.30-blue?logo=solidity" alt="Solidity Version"/>
@@ -7,40 +7,40 @@
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License"/>
 </p>
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [Overview](#-overview)
-- [Why Blockchain?](#-why-blockchain)
-- [Why Base?](#-why-base)
-- [Why IDRX?](#-why-idrx)
-- [Auto-Swap: Global Donations Made Easy](#-auto-swap-global-donations-made-easy)
-- [Smart Contract Architecture](#-smart-contract-architecture)
-- [Getting Started](#-getting-started)
-- [Environment Setup](#%EF%B8%8F-environment-setup)
-- [Testing](#-testing)
-- [Deployment](#-deployment)
-- [Makefile Commands](#%EF%B8%8F-makefile-commands)
-- [Minting Mock Tokens](#-minting-mock-tokens)
-- [Deployed Contracts](#-deployed-contracts)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [Overview](#overview)
+- [Why Blockchain?](#why-blockchain)
+- [Why Base?](#why-base)
+- [Why IDRX?](#why-idrx)
+- [Auto-Swap: Global Donations Made Easy](#auto-swap-global-donations-made-easy)
+- [Smart Contract Architecture](#smart-contract-architecture)
+- [Getting Started](#getting-started)
+- [Environment Setup](#environment-setup)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Makefile Commands](#makefile-commands)
+- [Minting Mock Tokens](#minting-mock-tokens)
+- [Deployed Contracts](#deployed-contracts)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## 🌟 Overview
+## Overview
 
 **CrowdFUNding** is a gamified crowdfunding platform built on the Base blockchain. We've reimagined the traditional crowdfunding experience by adding game-like elements to make donating more engaging and rewarding!
 
-### ✨ Key Features
+### Key Features
 
-- **🎯 Campaign Creation**: Create fundraising campaigns with target amounts and track progress
-- **💰 Multi-Token Donations**: Support for native currency and ERC20 tokens (IDRX & USDC)
-- **🏆 Achievement Badges**: Mint NFT badges as achievements for donors and campaign milestones
-- **🔒 Security First**: Built with OpenZeppelin's battle-tested contracts including ReentrancyGuard
+- **Campaign Creation**: Create fundraising campaigns with target amounts and track progress
+- **Multi-Token Donations**: Support for native currency and ERC20 tokens (IDRX & USDC)
+- **Achievement Badges**: Mint NFT badges as achievements for donors and campaign milestones
+- **Security First**: Built with OpenZeppelin's battle-tested contracts including ReentrancyGuard
 
 ---
 
-## 💡 Why Blockchain?
+## Why Blockchain?
 
 Traditional crowdfunding platforms face significant challenges: **lack of transparency**, **high fees**, and **trust issues**. Blockchain technology solves these problems:
 
@@ -56,23 +56,23 @@ With blockchain, every donation is **transparent**, **traceable**, and **trustle
 
 ---
 
-## ⚡ Why Base?
+## Why Base?
 
 We chose **Base** as our primary blockchain for several compelling reasons:
 
-### 🚀 Performance & Cost
+### Performance & Cost
 
 - **Low gas fees** — Up to 10x cheaper than Ethereum mainnet
 - **Fast transactions** — Near-instant finality for smooth user experience
 - **Scalable** — Built on Optimism's battle-tested OP Stack
 
-### 🏛️ Security & Trust
+### Security & Trust
 
 - **Backed by Coinbase** — Leverages Coinbase's security expertise and reputation
 - **Ethereum security** — Inherits Ethereum's robust security as an L2
 - **Decentralized** — Committed to progressive decentralization
 
-### 🌍 Ecosystem & Adoption
+### Ecosystem & Adoption
 
 - **Growing ecosystem** — Rapidly expanding developer and user community
 - **Easy onboarding** — Seamless integration with Coinbase wallet
@@ -82,23 +82,23 @@ Base provides the perfect balance of **security**, **speed**, and **cost-efficie
 
 ---
 
-## 🇮🇩 Why IDRX?
+## Why IDRX?
 
 **IDRX** is Indonesia's first and largest rupiah-pegged stablecoin, making it the ideal currency for our platform:
 
-### 💰 Local Currency Stability
+### Local Currency Stability
 
 - **1:1 pegged to IDR** — Donors contribute in familiar currency values
 - **No forex volatility** — Campaign targets remain stable in local terms
 - **Accessible amounts** — Small donations feel meaningful (not 0.0001 ETH)
 
-### 🌏 Indonesian Market Focus
+### Indonesian Market Focus
 
 - **270M+ population** — Massive potential donor base
 - **Growing crypto adoption** — Indonesia ranks 3rd globally in crypto adoption
 - **Financial inclusion** — Reaches underbanked populations via mobile wallets
 
-### 🔗 Technical Benefits
+### Technical Benefits
 
 - **ERC20 compatible** — Seamless integration with Base ecosystem
 - **2 decimal places** — Mirrors actual IDR for intuitive amounts
@@ -108,11 +108,11 @@ By supporting **IDRX alongside USDC**, we enable both **local Indonesian donors*
 
 ---
 
-## 🔄 Auto-Swap: Global Donations Made Easy
+## Auto-Swap: Global Donations Made Easy
 
 One of the most powerful features of CrowdFUNding is the **automatic token swap** functionality. This allows donors from anywhere in the world to contribute using their preferred currency, while campaigns receive funds in a unified format.
 
-### 🌐 How It Works
+### How It Works
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
@@ -136,7 +136,7 @@ One of the most powerful features of CrowdFUNding is the **automatic token swap*
 3. **Campaign receives** the equivalent amount in IDRX
 4. **Campaign owner withdraws** funds in IDRX
 
-### 💡 Benefits
+### Benefits
 
 | Feature                    | Benefit                                      |
 | -------------------------- | -------------------------------------------- |
@@ -147,7 +147,7 @@ One of the most powerful features of CrowdFUNding is the **automatic token swap*
 | **Global accessibility**   | International donors can use familiar tokens |
 | **Transparent rates**      | Exchange rates are on-chain and verifiable   |
 
-### 🌍 Global Reach
+### Global Reach
 
 This feature is designed to **maximize global participation**:
 
@@ -157,21 +157,21 @@ This feature is designed to **maximize global participation**:
 - **Campaign creators** receive all funds in IDRX for easy local withdrawal
 - **No forex hassles** — the smart contract handles everything automatically
 
-### 📊 Exchange Rates (Testnet)
+### Exchange Rates (Testnet)
 
 | Token | Rate per BASE | Decimals |
 | ----- | ------------- | -------- |
 | USDC  | 0.16 USDC     | 6        |
 | IDRX  | 2,684 IDRX    | 2        |
 
-> 💡 **Example**:
+> **Example**:
 >
 > - A donation of **1 BASE** would be automatically converted to approximately **2,684 IDRX**
 > - A donation of **100 USDC** would be automatically converted to approximately **1,677,500 IDRX** (16,775 IDRX per 1 USDC)
 
 ---
 
-## 🏗 Smart Contract Architecture
+## Smart Contract Architecture
 
 This project consists of **5 main smart contracts**:
 
@@ -190,12 +190,12 @@ The heart of the platform. Manages all crowdfunding campaigns with integrated au
 
 **Features:**
 
-- 🔄 **Auto-swap integration** — Donations in BASE native token or non-IDRX tokens are automatically converted to IDRX
-- 💰 Supports both BASE native token and ERC20 token donations
-- 🔒 ReentrancyGuard protection for secure withdrawals
-- 📡 Event emissions for donation tracking
-- 🏦 Unified storage in IDRX for consistent accounting
-- 💸 All withdrawals paid out in IDRX
+- **Auto-swap integration** — Donations in BASE native token or non-IDRX tokens are automatically converted to IDRX
+- Supports both BASE native token and ERC20 token donations
+- ReentrancyGuard protection for secure withdrawals
+- Event emissions for donation tracking
+- Unified storage in IDRX for consistent accounting
+- All withdrawals paid out in IDRX
 
 ### 2. **Badge.sol** - Achievement NFT Contract
 
@@ -252,11 +252,11 @@ Handles automatic token conversions for multi-currency donations.
 3. Converts BASE to output token using output token's rate
 4. Denormalizes to output token's decimals
 
-> ⚠️ **Note**: The Mock tokens and MockSwap are used **only for simulation and testing purposes**. In production, you would integrate with actual token contracts and a real DEX (like Uniswap or Aerodrome).
+> **Note**: The Mock tokens and MockSwap are used **only for simulation and testing purposes**. In production, you would integrate with actual token contracts and a real DEX (like Uniswap or Aerodrome).
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -300,11 +300,11 @@ You should see output like `forge 0.2.0 (...)` or similar.
    forge test
    ```
 
-   If all tests pass ✅, you're ready to go!
+   If all tests pass, you're ready to go!
 
 ---
 
-## ⚙️ Environment Setup
+## Environment Setup
 
 Create a `.env` file in the root directory with the following variables:
 
@@ -322,7 +322,7 @@ LOCAL_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2
 PRIVATE_KEY=your_private_key
 ```
 
-### 🔑 How to Retrieve Environment Keys
+### How to Retrieve Environment Keys
 
 | Variable            | How to Get                                                                                                                          |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
@@ -331,11 +331,11 @@ PRIVATE_KEY=your_private_key
 | `LOCAL_PRIVATE_KEY` | This is the default Anvil Account #0 private key. Safe for local testing only!                                                      |
 | `PRIVATE_KEY`       | Export from your wallet (MetaMask: Account Details → Export Private Key). **Never share this!**                                     |
 
-> ⚠️ **Security Warning**: Never commit your `.env` file or share your private keys. Add `.env` to your `.gitignore`.
+> **Security Warning**: Never commit your `.env` file or share your private keys. Add `.env` to your `.gitignore`.
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Run the complete test suite:
 
@@ -365,16 +365,16 @@ forge test --gas-report
 
 The test suite includes:
 
-- ✅ Campaign creation tests
-- ✅ Native currency donation tests
-- ✅ ERC20 token donation tests
-- ✅ Withdrawal authorization tests
-- ✅ Reentrancy attack protection tests
-- ✅ Badge minting tests
+- Campaign creation tests
+- Native currency donation tests
+- ERC20 token donation tests
+- Withdrawal authorization tests
+- Reentrancy attack protection tests
+- Badge minting tests
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### Option 1: Local Deployment (Anvil)
 
@@ -406,7 +406,7 @@ The test suite includes:
 
 ---
 
-## ⚙️ Makefile Commands
+## Makefile Commands
 
 The Makefile provides convenient shortcuts for common operations:
 
@@ -439,11 +439,11 @@ make base-deploy-verify
 
 ---
 
-## 💵 Minting Mock Tokens
+## Minting Mock Tokens
 
 For testing and simulation purposes, we use **Mock IDRX** and **Mock USDC** tokens. These mock tokens allow you to test the donation flow without using real assets.
 
-> 📝 **Important**: The Mock IDRX and Mock USDC are **simulation tokens only**. They are not the real IDRX or USDC tokens and have no real-world value. Use them solely for testing the crowdfunding flow.
+> **Important**: The Mock IDRX and Mock USDC are **simulation tokens only**. They are not the real IDRX or USDC tokens and have no real-world value. Use them solely for testing the crowdfunding flow.
 
 ### Minting Tokens via Cast
 
@@ -473,12 +473,12 @@ cast send 0xCCEEf0548658839637E5805E39bd52807792C4B9 "mint(address,uint256)" 0xY
 
 ---
 
-## 📍 Deployed Contracts
+## Deployed Contracts
 
 All contracts are deployed on **Base Sepolia Testnet**:
 
-| Contract      | Address                                      |
-| ------------- | -------------------------------------------- |
+| Contract      | Address                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | **Mock IDRX** | [`0x46d84937891D4618f2D70Db4794DFe9cFb628E46`](https://sepolia.basescan.org/address/0x46d84937891D4618f2D70Db4794DFe9cFb628E46) |
 | **Mock USDC** | [`0x2D34d56F3E1f64FFa297f88E7828Ec0EC7d825f6`](https://sepolia.basescan.org/address/0x2D34d56F3E1f64FFa297f88E7828Ec0EC7d825f6) |
 | **MockSwap**  | [`0xd3D4F196434E8EDCc897F47b36E1234BB514f5BA`](https://sepolia.basescan.org/address/0xd3D4F196434E8EDCc897F47b36E1234BB514f5BA) |
@@ -487,7 +487,7 @@ All contracts are deployed on **Base Sepolia Testnet**:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -499,7 +499,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
