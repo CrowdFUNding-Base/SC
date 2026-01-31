@@ -35,8 +35,9 @@ contract CampaignWithUSDCTest is Test {
     uint256 constant BASE_TO_USDC = 160_000;
     // 1 Base = 2684 IDRX (2 decimals)
     // For correct token-to-token swap math in MockSwap, scaled by 100
-    // This gives: 1 USDC ≈ 16,775 IDRX
-    uint256 constant BASE_TO_IDRX = 26_840_000;
+    // This gives: 1 USDC ≈ 16,775 IDRX (in human terms)
+    // For 100 USDC → 1,677,500 IDRX = 167,750,000 raw units (2 decimals)
+    uint256 constant BASE_TO_IDRX = 2_684_000_000;
 
     modifier initCampaign() {
         vm.prank(user);
@@ -276,6 +277,6 @@ contract CampaignWithUSDCTest is Test {
         // In smallest unit (2 decimals): 1,677,500 * 100 = 167,750,000 units
         // But MockSwap returns units directly, so: 1,677,500 units
         assertGt(quote, 0, "Quote should be greater than 0");
-        assertEq(quote, 1677500, "Swap rate should match: 1 USDC = 16,775 IDRX");
+        assertEq(quote, 167750000, "Swap rate should match: 100 USDC = 1,677,500 IDRX");
     }
 }

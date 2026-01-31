@@ -20,7 +20,7 @@ contract Deployer is Script {
     uint256 constant BASE_TO_USDC = 160_000;
     // 1 Base = 2684 IDRX (2 decimals) = 2684 * 10^2 = 268_400
 
-    uint256 constant BASE_TO_IDRX = 26_840_000_000;
+    uint256 constant BASE_TO_IDRX = 2_684_000_000;
 
     function run() public {
         vm.startBroadcast();
