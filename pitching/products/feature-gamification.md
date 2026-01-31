@@ -27,26 +27,26 @@ The following diagram shows how a donation triggers the gamification system. The
 ```mermaid
 flowchart TB
     A[Donation Confirmed] --> B{Check Donor's NFT Status}
-    
+
     B -->|No NFT Exists| C[Mint New Egg NFT]
     C --> D[Initialize XP = Base Amount]
     D --> E[Emit BadgeMinted Event]
-    
+
     B -->|NFT Exists| F[Calculate XP Gain]
     F --> G{Check Evolution Threshold}
-    
+
     G -->|Threshold Met| H[Evolve Pet to Next Stage]
     H --> I[Update NFT Metadata]
-    
+
     G -->|Below Threshold| J[Add XP to Current Stage]
     J --> I
-    
+
     I --> K[Update On-Chain Metadata]
     K --> L{Share to Social?}
-    
+
     L -->|Yes| M[Generate Share Card]
     M --> N[Post to Twitter/Instagram]
-    
+
     L -->|No| O[Complete]
     N --> O
 ```
@@ -65,17 +65,17 @@ The following progression system defines how pets evolve based on cumulative XP.
 
 ```
 +------------------------------------------------------------------+
-|                    Pet Evolution Journey                          |
+|                    Pet Evolution Journey                         |
 +------------------------------------------------------------------+
-|                                                                    |
-|   [Egg]         ->   [Hatchling]    ->   [Youth]                  |
-|   (0 XP)             (100 XP)            (500 XP)                 |
-|                                                                    |
-|   [Adult]       ->   [Elder]        ->   [Legendary]              |
-|   (2,000 XP)         (10,000 XP)         (50,000 XP)              |
-|                                                                    |
-|   XP = Cumulative donation value + Streak bonuses                 |
-|                                                                    |
+|                                                                  |
+|   [Egg]         ->   [Hatchling]    ->   [Youth]                 |
+|   (0 XP)             (100 XP)            (500 XP)                |
+|                                                                  |
+|   [Adult]       ->   [Elder]        ->   [Legendary]             |
+|   (2,000 XP)         (10,000 XP)         (50,000 XP)             |
+|                                                                  |
+|   XP = Cumulative donation value + Streak bonuses                |
+|                                                                  |
 +------------------------------------------------------------------+
 ```
 
@@ -99,9 +99,9 @@ contract Badge is ERC721, Ownable {
         string name;
         string description;
     }
-    
+
     mapping(uint256 => BadgeInfo) private _badgeInfos;
-    
+
     /// @notice Mint a new Badge to `to` with given `name` and `description`
     function mintBadge(
         address to,
@@ -126,13 +126,13 @@ The `onlyOwner` modifier ensures that only the authorized backend service can mi
 
 The table below describes each component in the gamification system and explains its role in creating the pet evolution experience:
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **NFT Contract** | Badge.sol (ERC721) | Mints and manages pet NFTs with unique token IDs and metadata |
-| **Metadata Storage** | IPFS / On-chain | Stores pet visual assets and current state (XP, evolution stage) |
-| **XP Calculation** | Backend Service | Processes donation events, applies streak bonuses, determines evolution triggers |
-| **Evolution Logic** | Smart Contract | Updates NFT metadata when XP thresholds are crossed |
-| **Social Sharing** | Farcaster Frames / OpenGraph | Generates visually appealing share cards with pet imagery and impact stats |
+| Component            | Technology                   | Purpose                                                                          |
+| -------------------- | ---------------------------- | -------------------------------------------------------------------------------- |
+| **NFT Contract**     | Badge.sol (ERC721)           | Mints and manages pet NFTs with unique token IDs and metadata                    |
+| **Metadata Storage** | IPFS / On-chain              | Stores pet visual assets and current state (XP, evolution stage)                 |
+| **XP Calculation**   | Backend Service              | Processes donation events, applies streak bonuses, determines evolution triggers |
+| **Evolution Logic**  | Smart Contract               | Updates NFT metadata when XP thresholds are crossed                              |
+| **Social Sharing**   | Farcaster Frames / OpenGraph | Generates visually appealing share cards with pet imagery and impact stats       |
 
 ---
 
@@ -142,14 +142,14 @@ The table below describes each component in the gamification system and explains
 
 The following table details how XP is earned through various actions. The multipliers reward consistent behavior and social contribution:
 
-| Action | XP Reward | Multiplier | Rationale |
-|--------|-----------|------------|-----------|
-| **First Donation** | 100 XP bonus | 1.5x | Rewards initial commitment |
-| **Per 1,000 IDRX** | 10 XP | 1x | Base earning rate |
-| **Daily Streak (7 days)** | 50 XP bonus | 1.2x | Encourages habit formation |
-| **Weekly Streak (4 weeks)** | 200 XP bonus | 1.5x | Rewards medium-term consistency |
-| **Monthly Streak (3 months)** | 1,000 XP bonus | 2x | Celebrates long-term commitment |
-| **Referral Donation** | 25% of referee's XP | 1x | Incentivizes social sharing |
+| Action                        | XP Reward           | Multiplier | Rationale                       |
+| ----------------------------- | ------------------- | ---------- | ------------------------------- |
+| **First Donation**            | 100 XP bonus        | 1.5x       | Rewards initial commitment      |
+| **Per 1,000 IDRX**            | 10 XP               | 1x         | Base earning rate               |
+| **Daily Streak (7 days)**     | 50 XP bonus         | 1.2x       | Encourages habit formation      |
+| **Weekly Streak (4 weeks)**   | 200 XP bonus        | 1.5x       | Rewards medium-term consistency |
+| **Monthly Streak (3 months)** | 1,000 XP bonus      | 2x         | Celebrates long-term commitment |
+| **Referral Donation**         | 25% of referee's XP | 1x         | Incentivizes social sharing     |
 
 The XP formula creates compound rewards for consistent givers. A donor who gives small amounts regularly will out-earn a donor who gives one large sum, aligning incentives with the behavioral patterns that maximize lifetime value.
 
@@ -175,15 +175,15 @@ The system is designed to be forgiving while still creating meaningful goals. Mi
 
 The following table compares the Dynamic Proof of Impact system against traditional donor recognition methods and subscription-based engagement apps:
 
-| Feature | Traditional Charity | Subscription Apps | CrowdFUNding NFT Pets |
-|---------|--------------------|--------------------|----------------------|
-| **Recognition** | Static certificate | Badge/level | Living, evolving NFT |
-| **Proof of Impact** | Paper receipt | Database record | Immutable on-chain record |
-| **Engagement Loop** | Annual newsletter | Points system | Tamagotchi-style care |
-| **Social Sharing** | Manual screenshot | Limited functionality | One-tap social cards |
-| **Ownership** | None (platform owns data) | Platform-locked | True ownership (NFT) |
-| **Transferability** | Not applicable | Not applicable | Tradeable on marketplaces |
-| **Retention Driver** | Guilt/appeals | Points and rewards | Emotional connection |
+| Feature              | Traditional Charity       | Subscription Apps     | CrowdFUNding NFT Pets     |
+| -------------------- | ------------------------- | --------------------- | ------------------------- |
+| **Recognition**      | Static certificate        | Badge/level           | Living, evolving NFT      |
+| **Proof of Impact**  | Paper receipt             | Database record       | Immutable on-chain record |
+| **Engagement Loop**  | Annual newsletter         | Points system         | Tamagotchi-style care     |
+| **Social Sharing**   | Manual screenshot         | Limited functionality | One-tap social cards      |
+| **Ownership**        | None (platform owns data) | Platform-locked       | True ownership (NFT)      |
+| **Transferability**  | Not applicable            | Not applicable        | Tradeable on marketplaces |
+| **Retention Driver** | Guilt/appeals             | Points and rewards    | Emotional connection      |
 
 The critical differentiator is true ownership. Traditional platforms hold donor records that donors cannot export or prove. NFT pets exist on the blockchain independent of CrowdFUNding—even if our platform ceased to exist, donors would retain their pets and the complete history of their philanthropic activity.
 
@@ -193,13 +193,13 @@ The critical differentiator is true ownership. Traditional platforms hold donor 
 
 The following comparison focuses on donor retention and engagement metrics across major crowdfunding platforms:
 
-| Metric | GoFundMe | Kitabisa | CrowdFUNding |
-|--------|----------|----------|--------------|
-| **Donor Retention** | Approximately 15% | Approximately 19% | Target: 65% |
-| **Engagement Model** | One-time transaction | Occasional campaigns | Daily streak incentive |
-| **Social Virality** | Limited sharing options | Basic sharing | Gamified share cards |
-| **Digital Assets** | None | None | Evolving NFT pets |
-| **Proof of Giving** | Email receipt | PDF certificate | On-chain badge |
+| Metric               | GoFundMe                | Kitabisa             | CrowdFUNding           |
+| -------------------- | ----------------------- | -------------------- | ---------------------- |
+| **Donor Retention**  | Approximately 15%       | Approximately 19%    | Target: 65%            |
+| **Engagement Model** | One-time transaction    | Occasional campaigns | Daily streak incentive |
+| **Social Virality**  | Limited sharing options | Basic sharing        | Gamified share cards   |
+| **Digital Assets**   | None                    | None                 | Evolving NFT pets      |
+| **Proof of Giving**  | Email receipt           | PDF certificate      | On-chain badge         |
 
 The 65% retention target is based on comparable gamification implementations in fitness apps (Strava, Nike Run Club) and language learning (Duolingo), which have demonstrated similar streak mechanics can drive retention 3-4x above industry baselines.
 
@@ -225,22 +225,22 @@ The gamification layer shifts the psychology of giving from "loss" (giving money
 
 The following table explains the behavioral economics principles underlying the gamification system and their expected effects:
 
-| Driver | Mechanism | Expected Result |
-|--------|-----------|-----------------|
-| **Loss Aversion** | "Don't let your pet devolve!" | Streak maintenance behavior |
-| **Collection Instinct** | Multiple pet types/rarities | Repeat donations to complete sets |
-| **Social Status** | Leaderboards and rare evolutions | Competitive giving behavior |
-| **Progress Tracking** | XP bar and evolution stages | Goal-oriented donation patterns |
+| Driver                  | Mechanism                        | Expected Result                   |
+| ----------------------- | -------------------------------- | --------------------------------- |
+| **Loss Aversion**       | "Don't let your pet devolve!"    | Streak maintenance behavior       |
+| **Collection Instinct** | Multiple pet types/rarities      | Repeat donations to complete sets |
+| **Social Status**       | Leaderboards and rare evolutions | Competitive giving behavior       |
+| **Progress Tracking**   | XP bar and evolution stages      | Goal-oriented donation patterns   |
 
 ### Impact Metrics
 
 The following metrics represent expected improvements based on gamification implementations in comparable consumer applications:
 
-| Metric | Industry Average | CrowdFUNding Target |
-|--------|------------------|---------------------|
-| **Retention Rate** | 19% | 65% |
-| **Repeat Donation Rate** | 25% | 70% |
-| **Social Shares per User** | 0.1 | 2.5 |
+| Metric                     | Industry Average    | CrowdFUNding Target |
+| -------------------------- | ------------------- | ------------------- |
+| **Retention Rate**         | 19%                 | 65%                 |
+| **Repeat Donation Rate**   | 25%                 | 70%                 |
+| **Social Shares per User** | 0.1                 | 2.5                 |
 | **Average Lifetime Value** | 1.2x first donation | 5.4x first donation |
 
 ---

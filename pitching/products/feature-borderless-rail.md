@@ -32,20 +32,20 @@ flowchart TB
         B -->|ETH/BASE| D[Send BASE Native]
         B -->|IDRX| E[Send IDRX Direct]
     end
-    
+
     subgraph Smart Contract Router
         C --> F[Campaign.donate with tokenIn]
         D --> G[Campaign.donate payable]
         E --> H[Direct IDRX Transfer]
-        
+
         F --> I[MockSwap.swap]
         G --> J[MockSwap.swapETHForToken]
-        
+
         I --> K[Receive IDRX]
         J --> K
         H --> K
     end
-    
+
     subgraph Campaign Vault
         K --> L[Credit Campaign Balance]
         L --> M[Emit DonationReceived]
@@ -70,14 +70,14 @@ The following code shows how Campaign.sol handles native token donations with au
 function donate(uint256 campaignId) public payable nonReentrant {
     // Get balance before swap
     uint256 balanceBefore = IERC20(storageToken).balanceOf(address(this));
-    
+
     // Swap ETH to storageToken (IDRX)
     mockSwap.swapETHForToken{value: msg.value}(storageToken);
-    
+
     // Calculate how much storageToken we received
     uint256 balanceAfter = IERC20(storageToken).balanceOf(address(this));
     uint256 amountToStore = balanceAfter - balanceBefore;
-    
+
     _campaigns[campaignId].balance += amountToStore;
     emit DonationReceived(campaignId, msg.sender, amountToStore);
 }
@@ -107,12 +107,12 @@ function donate(uint256 campaignId, uint256 amount, address tokenIn) public nonR
 
 The following table describes the components that make up the Borderless Liquidity Rail and their roles in enabling seamless multi-currency donations:
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Token Router** | Campaign.sol | Detects input token type and routes to appropriate swap function or direct transfer |
-| **Swap Engine** | MockSwap.sol | Executes token-to-IDRX conversions using configured exchange rates |
-| **Rate Oracle** | On-chain rates | Provides verifiable exchange rates for all supported token pairs |
-| **Atomic Execution** | Single Transaction | Ensures swap and donation either both succeed or both fail—no partial states |
+| Component            | Technology         | Purpose                                                                             |
+| -------------------- | ------------------ | ----------------------------------------------------------------------------------- |
+| **Token Router**     | Campaign.sol       | Detects input token type and routes to appropriate swap function or direct transfer |
+| **Swap Engine**      | MockSwap.sol       | Executes token-to-IDRX conversions using configured exchange rates                  |
+| **Rate Oracle**      | On-chain rates     | Provides verifiable exchange rates for all supported token pairs                    |
+| **Atomic Execution** | Single Transaction | Ensures swap and donation either both succeed or both fail—no partial states        |
 
 ---
 
@@ -122,19 +122,19 @@ The MockSwap contract uses a normalized 18-decimal system to ensure accurate con
 
 ```
 +------------------------------------------------------------------+
-|                    Swap Calculation Flow                          |
+|                    Swap Calculation Flow                         |
 +------------------------------------------------------------------+
-|  1. Normalize input to 18 decimals                                |
-|     normalizedIn = amountIn * 10^(18 - inputDecimals)             |
-|                                                                    |
-|  2. Convert to ETH equivalent                                      |
-|     ethEquivalent = (normalizedIn * 10^18) / ethToTokenRate       |
-|                                                                    |
-|  3. Convert ETH to output token                                    |
-|     normalizedOut = (ethEquivalent * outputEthToToken) / 10^18    |
-|                                                                    |
-|  4. Denormalize to output decimals                                 |
-|     amountOut = normalizedOut / 10^(18 - outputDecimals)          |
+|  1. Normalize input to 18 decimals                               |
+|     normalizedIn = amountIn * 10^(18 - inputDecimals)            |
+|                                                                  |
+|  2. Convert to ETH equivalent                                    |
+|     ethEquivalent = (normalizedIn * 10^18) / ethToTokenRate      |
+|                                                                  |
+|  3. Convert ETH to output token                                  |
+|     normalizedOut = (ethEquivalent * outputEthToToken) / 10^18   |
+|                                                                  |
+|  4. Denormalize to output decimals                               |
+|     amountOut = normalizedOut / 10^(18 - outputDecimals)         |
 +------------------------------------------------------------------+
 ```
 
@@ -144,12 +144,13 @@ This normalization approach allows the swap engine to handle tokens with vastly 
 
 The following table shows the exchange rates configured on the testnet deployment. In production, these rates would be sourced from on-chain oracles like Chainlink or calculated from DEX liquidity pools:
 
-| Token | Rate per 1 BASE | Decimals | Notes |
-|-------|-----------------|----------|-------|
-| USDC  | 0.16 USDC       | 6        | Represents approximately $0.16 per BASE |
+| Token | Rate per 1 BASE | Decimals | Notes                                      |
+| ----- | --------------- | -------- | ------------------------------------------ |
+| USDC  | 0.16 USDC       | 6        | Represents approximately $0.16 per BASE    |
 | IDRX  | 2,684 IDRX      | 2        | Represents approximately Rp 2,684 per BASE |
 
 **Example Calculation**: A donation of 100 USDC would convert as follows:
+
 - 100 USDC at $1 = $100 equivalent
 - $100 at Rp 16.775 = approximately 1,677,500 IDRX
 - Campaign receives exactly 1,677,500 IDRX (Rp 16,775,000)
@@ -160,14 +161,14 @@ The following table shows the exchange rates configured on the testnet deploymen
 
 The following table compares the Borderless Liquidity Rail against traditional international donation methods. The fee and timing data is sourced from World Bank remittance databases and payment processor published rates:
 
-| Metric | Bank Wire (SWIFT) | PayPal International | CrowdFUNding (Base) |
-|--------|-------------------|---------------------|---------------------|
-| **Transfer Fee** | $25-50 + 3-5% | 4-5% + forex markup | Less than 0.01% (gas only) |
-| **Settlement Time** | 3-7 business days | 1-3 business days | Instant |
-| **Minimum Amount** | $100+ practical | $10+ practical | No minimum |
-| **Currency Conversion** | Bank's forex rate | PayPal's markup | Transparent on-chain rate |
-| **Tracking** | SWIFT reference only | Transaction ID | Full blockchain explorer |
-| **Recipient Gets** | Unknown until received | Estimated | Exact IDRX amount shown |
+| Metric                  | Bank Wire (SWIFT)      | PayPal International | CrowdFUNding (Base)        |
+| ----------------------- | ---------------------- | -------------------- | -------------------------- |
+| **Transfer Fee**        | $25-50 + 3-5%          | 4-5% + forex markup  | Less than 0.01% (gas only) |
+| **Settlement Time**     | 3-7 business days      | 1-3 business days    | Instant                    |
+| **Minimum Amount**      | $100+ practical        | $10+ practical       | No minimum                 |
+| **Currency Conversion** | Bank's forex rate      | PayPal's markup      | Transparent on-chain rate  |
+| **Tracking**            | SWIFT reference only   | Transaction ID       | Full blockchain explorer   |
+| **Recipient Gets**      | Unknown until received | Estimated            | Exact IDRX amount shown    |
 
 The reduction in transfer fees from 4-8% (traditional) to under 0.01% (blockchain) is the most significant improvement. For large campaigns raising millions of rupiah, this represents substantial additional funds reaching beneficiaries.
 
@@ -177,13 +178,13 @@ The reduction in transfer fees from 4-8% (traditional) to under 0.01% (blockchai
 
 The following comparison positions the Borderless Liquidity Rail against both traditional charity platforms and existing crypto donation sites:
 
-| Feature | Traditional Charity | Crypto Donation Sites | CrowdFUNding |
-|---------|--------------------|-----------------------|--------------|
-| **Multi-currency Support** | Limited (USD, local currency) | Token-specific per campaign | Any token converts to IDRX |
-| **Volatility Protection** | Not applicable (fiat) | Recipient bears all risk | Auto-convert to stable IDRX |
-| **Unified Accounting** | Multi-currency complexity | Multi-token tracking needed | Single IDRX ledger |
-| **Atomic Swap** | Not applicable | Manual DEX interaction required | Built-in, single transaction |
-| **Global to Local Bridge** | High friction (SWIFT, forex) | Remains in crypto | Seamless USDC to IDRX |
+| Feature                    | Traditional Charity           | Crypto Donation Sites           | CrowdFUNding                 |
+| -------------------------- | ----------------------------- | ------------------------------- | ---------------------------- |
+| **Multi-currency Support** | Limited (USD, local currency) | Token-specific per campaign     | Any token converts to IDRX   |
+| **Volatility Protection**  | Not applicable (fiat)         | Recipient bears all risk        | Auto-convert to stable IDRX  |
+| **Unified Accounting**     | Multi-currency complexity     | Multi-token tracking needed     | Single IDRX ledger           |
+| **Atomic Swap**            | Not applicable                | Manual DEX interaction required | Built-in, single transaction |
+| **Global to Local Bridge** | High friction (SWIFT, forex)  | Remains in crypto               | Seamless USDC to IDRX        |
 
 The key differentiator is the combination of multi-currency acceptance with stable-currency settlement. Donors can contribute using their preferred asset while campaign creators receive predictable, local-currency-denominated value.
 
@@ -209,12 +210,12 @@ The Borderless Liquidity Rail creates a true "Global-Local" bridge. A donor in N
 
 The following metrics quantify the improvement in cross-border donation efficiency enabled by the Borderless Liquidity Rail:
 
-| Metric | Before (Traditional) | After (CrowdFUNding) |
-|--------|----------------------|----------------------|
-| **Cross-border Fee** | 12.66% average | Less than 1% |
-| **Settlement Time** | 7-14 days | Less than 30 seconds |
-| **Minimum Viable Donation** | $50+ (lower amounts uneconomical) | Any amount |
-| **Currency Risk** | Borne by recipient | Eliminated |
+| Metric                      | Before (Traditional)              | After (CrowdFUNding) |
+| --------------------------- | --------------------------------- | -------------------- |
+| **Cross-border Fee**        | 12.66% average                    | Less than 1%         |
+| **Settlement Time**         | 7-14 days                         | Less than 30 seconds |
+| **Minimum Viable Donation** | $50+ (lower amounts uneconomical) | Any amount           |
+| **Currency Risk**           | Borne by recipient                | Eliminated           |
 
 ---
 

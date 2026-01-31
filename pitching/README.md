@@ -28,8 +28,8 @@ Start here to understand the platform:
 1. **Overview**: [introduction/overview.md](./introduction/overview.md)
 2. **Problem**: [introduction/problem.md](./introduction/problem.md)
 3. **Solution**: [introduction/solution.md](./introduction/solution.md)
-4. **How it Works**: [products/how-crowdfunding-works.md](./products/how-crowdfunding-works.md)
-5. **Tech Stack**: [products/tech-stack.md](./products/tech-stack.md)
+4. **How it Works**: [architecture/how-crowdfunding-works.md](./architecture/how-crowdfunding-works.md)
+5. **Tech Stack**: [architecture/tech-stack.md](./architecture/tech-stack.md)
 
 ### For Developers
 
@@ -49,6 +49,9 @@ Understand the architecture:
 1. **Smart Contract Architecture**: [architecture/smart-contract-architecture.md](./architecture/smart-contract-architecture.md)
 2. **System Architecture**: [architecture/system-architecture.md](./architecture/system-architecture.md)
 3. **Data Flow**: [architecture/data-flow.md](./architecture/data-flow.md)
+4. **Tech Stack**: [architecture/tech-stack.md](./architecture/tech-stack.md)
+5. **Tech Comparison**: [architecture/tech-comparison.md](./architecture/tech-comparison.md)
+6. **How Crowdfunding Works**: [architecture/how-crowdfunding-works.md](./architecture/how-crowdfunding-works.md)
 
 ### Features Documentation
 
@@ -66,29 +69,29 @@ Detailed documentation for each core feature:
 
 ### Why CrowdFUNding?
 
-| Problem | Our Solution |
-|---------|--------------|
-| Opaque fund usage | All transactions on blockchain |
-| High platform fees (5-15%) | Minimal gas fees on Base |
-| Geographic restrictions | Borderless with crypto |
-| Complex crypto onboarding | Google login + embedded wallets |
+| Problem                    | Our Solution                    |
+| -------------------------- | ------------------------------- |
+| Opaque fund usage          | All transactions on blockchain  |
+| High platform fees (5-15%) | Minimal gas fees on Base        |
+| Geographic restrictions    | Borderless with crypto          |
+| Complex crypto onboarding  | Google login + embedded wallets |
 
 ### Tech Stack at a Glance
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | Next.js 16, React 19, TailwindCSS 4 |
-| **Backend** | Express.js, PostgreSQL, Passport.js |
+| Layer               | Technology                             |
+| ------------------- | -------------------------------------- |
+| **Frontend**        | Next.js 16, React 19, TailwindCSS 4    |
+| **Backend**         | Express.js, PostgreSQL, Passport.js    |
 | **Smart Contracts** | Solidity 0.8.30, Foundry, OpenZeppelin |
-| **Indexer** | Ponder, GraphQL, Hono |
-| **Blockchain** | Base Sepolia (L2) |
+| **Indexer**         | Ponder, GraphQL, Hono                  |
+| **Blockchain**      | Base Sepolia (L2)                      |
 
 ### Deployed Contracts
 
-| Contract | Address |
-|----------|---------|
+| Contract | Address                                      |
+| -------- | -------------------------------------------- |
 | Campaign | `0x44e87aa98d721Dbcf368690bF5aAb1F3dD944dA9` |
-| Badge | `0xaE32Df9Fb677aE68C5A1F956761a42e269Ebdc99` |
+| Badge    | `0xaE32Df9Fb677aE68C5A1F956761a42e269Ebdc99` |
 | MockSwap | `0x554366984fD2f5D82c753F91357d80c29F887F17` |
 | MockIDRX | `0x387551ac55Bb6949d44715D07880f8c6260934B6` |
 | MockUSDC | `0x1b929eB40670aA4e0D757d45cA9aea2311a25a97` |
@@ -113,4 +116,4 @@ For questions about the technical implementation, please reach out to the CrowdF
 
 ---
 
-Made with love by the CrowdFUNding Team
+Made with love by UGM BCC
