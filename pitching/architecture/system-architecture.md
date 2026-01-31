@@ -86,7 +86,7 @@ flowchart TB
     subgraph Services["Services"]
         Wagmi["Wagmi Config"]
         APIClient["Backend API"]
-        Privy["Privy Auth"]
+        GoogleOAuth["Google OAuth 2.0"]
     end
 
     Pages --> Components
@@ -96,13 +96,13 @@ flowchart TB
 
 The following table summarizes the key architectural decisions in the frontend:
 
-| Layer                | Technology              | Purpose                                    |
-| -------------------- | ----------------------- | ------------------------------------------ |
-| **Framework**        | Next.js 16 (App Router) | Server-side rendering, routing, API routes |
-| **State Management** | React Query + Context   | Server state caching, global app state     |
-| **Blockchain**       | Wagmi + Viem            | Type-safe contract interactions            |
-| **Authentication**   | Privy                   | Social login + embedded wallets            |
-| **Styling**          | TailwindCSS 4           | Utility-first responsive design            |
+| Layer                | Technology                    | Purpose                                    |
+| -------------------- | ----------------------------- | ------------------------------------------ |
+| **Framework**        | Next.js 16 (App Router)       | Server-side rendering, routing, API routes |
+| **State Management** | React Query + Context         | Server state caching, global app state     |
+| **Blockchain**       | Wagmi + Viem                  | Type-safe contract interactions            |
+| **Authentication**   | Google OAuth 2.0 + RainbowKit | Social login + Web3 wallet connection      |
+| **Styling**          | TailwindCSS 4                 | Utility-first responsive design            |
 
 ### 2. Backend Architecture
 

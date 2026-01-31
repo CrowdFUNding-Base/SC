@@ -7,14 +7,16 @@ This guide provides comprehensive instructions for setting up and running the Cr
 The indexer is a **Ponder** application that listens to blockchain events in real-time and makes the data queryable via GraphQL and REST APIs. It serves as the bridge between on-chain data and the backend cache.
 
 **Key Responsibilities:**
+
 - Subscribe to blockchain events in real-time
-- Index events into a queryable database
+- Index events into a queryable database (SQLite/PostgreSQL)
 - Provide GraphQL and REST APIs for data access
-- Keep backend cache synchronized with blockchain state
+- Push data to backend via webhook (real-time sync)
+- Serve as fallback data source for backend auto-sync
 
 ## Architecture
 
-The indexer follows an event-driven architecture where blockchain events trigger handlers that update the local database.
+The indexer follows an event-driven architecture where blockchain events trigger handlers that update the local database and push to backend.
 
 ```mermaid
 flowchart TB
@@ -23,38 +25,72 @@ flowchart TB
         Badge["Badge.sol"]
     end
 
-    subgraph EventHandlers["Event Handlers"]
-        CampaignHandler["src/Campaign.ts"]
-        BadgeHandler["src/Badge.ts"]
+    subgraph Ponder["Ponder Indexer"]
+        subgraph EventHandlers["Event Handlers"]
+            CampaignHandler["src/Campaign.ts"]
+            BadgeHandler["src/Badge.ts"]
+        end
+
+        subgraph Database["Database"]
+            Tables["Tables:\n- campaigns\n- donations\n- withdrawals\n- badges"]
+        end
+
+        subgraph APIs["API Layer"]
+            GraphQL["GraphQL Endpoint\n:42069/graphql"]
+            REST["REST Endpoints\n:42069/api/*"]
+        end
+
+        subgraph Sync["Sync Layer"]
+            Webhook["Webhook Sync\nsyncBackend.ts"]
+        end
     end
 
-    subgraph Database["Database"]
-        Tables["Tables:\n- campaigns\n- donations\n- withdrawals\n- badges"]
-    end
-
-    subgraph APIs["API Layer"]
-        GraphQL["GraphQL Endpoint\n:42069/graphql"]
-        REST["REST Endpoints\n:42069/api/*"]
+    subgraph Backend["Backend (Express.js)"]
+        BackendAPI["API Endpoints\n/api/sync/*"]
+        PostgreSQL[(PostgreSQL)]
+        AutoSync["Auto-Sync\n(Fallback)"]
     end
 
     Campaign --> |"Events"| CampaignHandler
     Badge --> |"Events"| BadgeHandler
     CampaignHandler --> |"Insert/Update"| Tables
     BadgeHandler --> |"Insert/Update"| Tables
+    CampaignHandler -.->|"Push (PRIMARY)"| Webhook
+    BadgeHandler -.->|"Push (PRIMARY)"| Webhook
+    Webhook -->|"HTTP POST\nReal-time"| BackendAPI
+    BackendAPI --> PostgreSQL
+
     Tables --> GraphQL
     Tables --> REST
+    REST -.->|"Poll (FALLBACK)\nEvery 5 min"| AutoSync
+    AutoSync --> PostgreSQL
+
+    style Webhook fill:#4caf50
+    style AutoSync fill:#ff9800
+    style Ponder fill:#e1f5ff
+    style Backend fill:#fff4e1
 ```
+
+**Data Flow:**
+
+1. **Blockchain → Ponder:** Events are indexed to local database (SQLite/PostgreSQL)
+2. **Ponder → Backend (Webhook - PRIMARY):** Event handlers push data immediately via HTTP
+3. **Ponder → Backend (Auto-Sync - FALLBACK):** Backend polls GraphQL API every 5 minutes
+4. **Ponder → Clients:** GraphQL/REST APIs available for direct queries (if needed)
 
 ### Key Architectural Decisions
 
 The following table explains the major architectural choices:
 
-| Decision | Implementation | Benefit |
-|----------|---------------|---------|
-| **Ponder Framework** | TypeScript-based indexer | Hot reload, type safety |
-| **Event-Driven** | Handler per event type | Clear separation of concerns |
-| **Dual API** | GraphQL + REST | Flexibility for consumers |
-| **Portable DB** | SQLite (dev) / PostgreSQL (prod) | Easy development, scalable production |
+| Decision               | Implementation                          | Benefit                                  |
+| ---------------------- | --------------------------------------- | ---------------------------------------- |
+| **Ponder Framework**   | TypeScript-based indexer                | Hot reload, type safety                  |
+| **Event-Driven**       | Handler per event type                  | Clear separation of concerns             |
+| **Dual Sync Strategy** | Webhook (push) + GraphQL API (pull)     | Real-time updates + fallback reliability |
+| **Webhook-First Sync** | Push to backend on every event          | Real-time data propagation (< 1s)        |
+| **GraphQL API**        | Query language for flexible data access | Powerful queries, auto-generated         |
+| **REST API**           | Simple HTTP endpoints                   | Easy integration, fallback access        |
+| **Portable DB**        | SQLite (dev) / PostgreSQL (prod)        | Easy development, scalable production    |
 
 ## Prerequisites
 
@@ -78,8 +114,10 @@ The indexer has a simple, focused structure:
 ├── src/
 │   ├── Campaign.ts           # Campaign event handlers
 │   ├── Badge.ts              # Badge event handlers
-│   └── api/
-│       └── index.ts          # Custom REST endpoints
+│   ├── api/
+│   │   └── index.ts          # Custom REST endpoints
+│   └── utils/
+│       └── syncBackend.ts    # Webhook sync to backend
 ├── tsconfig.json             # TypeScript configuration
 └── package.json              # Dependencies
 ```
@@ -99,7 +137,7 @@ erDiagram
         bigint targetAmount
         bigint creationTime
     }
-    
+
     DONATIONS {
         text id PK "txHash-logIndex"
         integer campaignId FK
@@ -109,7 +147,7 @@ erDiagram
         bigint timestamp
         hex transactionHash
     }
-    
+
     WITHDRAWALS {
         text id PK
         integer campaignId FK
@@ -118,7 +156,7 @@ erDiagram
         bigint timestamp
         hex transactionHash
     }
-    
+
     BADGES {
         integer tokenId PK
         hex owner
@@ -139,30 +177,38 @@ The following code shows how the schema is defined:
 // ponder.schema.ts
 import { onchainTable, index, relations } from "ponder";
 
-export const campaigns = onchainTable("campaigns", (t) => ({
-  id: t.integer().primaryKey(),
-  name: t.text().notNull(),
-  creatorName: t.text().notNull(),
-  owner: t.hex().notNull(),
-  balance: t.bigint().notNull(),
-  targetAmount: t.bigint().notNull(),
-  creationTime: t.bigint().notNull(),
-}), (table) => ({
-  ownerIndex: index().on(table.owner),
-}));
+export const campaigns = onchainTable(
+  "campaigns",
+  (t) => ({
+    id: t.integer().primaryKey(),
+    name: t.text().notNull(),
+    creatorName: t.text().notNull(),
+    owner: t.hex().notNull(),
+    balance: t.bigint().notNull(),
+    targetAmount: t.bigint().notNull(),
+    creationTime: t.bigint().notNull(),
+  }),
+  (table) => ({
+    ownerIndex: index().on(table.owner),
+  }),
+);
 
-export const donations = onchainTable("donations", (t) => ({
-  id: t.text().primaryKey(),        // txHash-logIndex
-  campaignId: t.integer().notNull(),
-  donor: t.hex().notNull(),
-  amount: t.bigint().notNull(),
-  blockNumber: t.bigint().notNull(),
-  timestamp: t.bigint().notNull(),
-  transactionHash: t.hex().notNull(),
-}), (table) => ({
-  campaignIdIndex: index().on(table.campaignId),
-  donorIndex: index().on(table.donor),
-}));
+export const donations = onchainTable(
+  "donations",
+  (t) => ({
+    id: t.text().primaryKey(), // txHash-logIndex
+    campaignId: t.integer().notNull(),
+    donor: t.hex().notNull(),
+    amount: t.bigint().notNull(),
+    blockNumber: t.bigint().notNull(),
+    timestamp: t.bigint().notNull(),
+    transactionHash: t.hex().notNull(),
+  }),
+  (table) => ({
+    campaignIdIndex: index().on(table.campaignId),
+    donorIndex: index().on(table.donor),
+  }),
+);
 ```
 
 ## Environment Setup
@@ -179,6 +225,12 @@ PONDER_RPC_URL_1=https://sepolia.base.org
 # PONDER_RPC_URL_1=https://base-sepolia.g.alchemy.com/v2/YOUR_API_KEY
 
 # ============================
+# Backend Integration (Webhook Sync)
+# ============================
+BACKEND_URL=http://localhost:3300
+PONDER_SYNC_API_KEY=your-sync-api-key
+
+# ============================
 # Database (Optional for Production)
 # ============================
 # By default, Ponder uses SQLite for development
@@ -186,13 +238,16 @@ PONDER_RPC_URL_1=https://sepolia.base.org
 # DATABASE_URL=postgresql://user:password@host:5432/ponder
 ```
 
-### How to Get RPC URL
+### How to Get Environment Keys
 
-| Provider | How to Obtain |
-|----------|---------------|
-| **Alchemy** | [alchemy.com](https://alchemy.com) → Create App → Select Base Sepolia |
-| **Infura** | [infura.io](https://infura.io) → Create Key → Enable Base |
-| **Public** | `https://sepolia.base.org` (rate-limited, not recommended for production) |
+| Variable                | How to Obtain                                                     |
+| ----------------------- | ----------------------------------------------------------------- |
+| **PONDER_RPC_URL_1**    | [Alchemy](https://alchemy.com) → Create App → Select Base Sepolia |
+|                         | [Infura](https://infura.io) → Create Key → Enable Base            |
+|                         | Or use public: `https://sepolia.base.org` (rate-limited)          |
+| **BACKEND_URL**         | Your backend server URL (e.g., `http://localhost:3300`)           |
+| **PONDER_SYNC_API_KEY** | Generate a secure random string for webhook authentication        |
+| **DATABASE_URL**        | PostgreSQL connection string for production                       |
 
 ## Installation
 
@@ -223,6 +278,7 @@ npm run dev
 ```
 
 The indexer will:
+
 1. Connect to Base Sepolia RPC
 2. Start indexing from the configured start block
 3. Listen for new events in real-time
@@ -249,7 +305,7 @@ import { ponder } from "@/generated";
 // Handle new campaign creation
 ponder.on("Campaign:CampaignCreated", async ({ event, context }) => {
   const { db } = context;
-  
+
   await db.campaigns.insert({
     id: Number(event.args.id),
     name: event.args.name,
@@ -264,10 +320,10 @@ ponder.on("Campaign:CampaignCreated", async ({ event, context }) => {
 // Handle donations
 ponder.on("Campaign:DonationReceived", async ({ event, context }) => {
   const { db } = context;
-  
+
   // Create unique donation ID from transaction
   const donationId = `${event.transaction.hash}-${event.log.logIndex}`;
-  
+
   // Insert donation record
   await db.donations.insert({
     id: donationId,
@@ -278,7 +334,7 @@ ponder.on("Campaign:DonationReceived", async ({ event, context }) => {
     timestamp: event.block.timestamp,
     transactionHash: event.transaction.hash,
   });
-  
+
   // Update campaign balance
   await db.campaigns.update({
     id: Number(event.args.id),
@@ -289,7 +345,7 @@ ponder.on("Campaign:DonationReceived", async ({ event, context }) => {
 // Handle withdrawals
 ponder.on("Campaign:FundWithdrawn", async ({ event, context }) => {
   const { db } = context;
-  
+
   await db.withdrawals.insert({
     id: `${event.transaction.hash}-${event.log.logIndex}`,
     campaignId: Number(event.args.id),
@@ -298,7 +354,7 @@ ponder.on("Campaign:FundWithdrawn", async ({ event, context }) => {
     timestamp: event.block.timestamp,
     transactionHash: event.transaction.hash,
   });
-  
+
   // Update campaign balance
   await db.campaigns.update({
     id: Number(event.args.id),
@@ -315,7 +371,7 @@ import { ponder } from "@/generated";
 
 ponder.on("Badge:BadgeMinted", async ({ event, context }) => {
   const { db } = context;
-  
+
   await db.badges.insert({
     tokenId: Number(event.args.tokenId),
     owner: event.args.owner,
@@ -338,15 +394,15 @@ Access the GraphQL playground at `http://localhost:42069` to explore and test qu
 
 The following REST endpoints are automatically generated:
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/api/campaigns` | List all campaigns |
-| GET | `/api/campaigns/:id` | Get campaign by ID |
-| GET | `/api/donations` | List all donations |
-| GET | `/api/donations/user/:address` | User's donations |
-| GET | `/api/badges` | List all badges |
-| GET | `/api/badges/user/:address` | User's badges |
+| Method | Endpoint                       | Description        |
+| ------ | ------------------------------ | ------------------ |
+| GET    | `/health`                      | Health check       |
+| GET    | `/api/campaigns`               | List all campaigns |
+| GET    | `/api/campaigns/:id`           | Get campaign by ID |
+| GET    | `/api/donations`               | List all donations |
+| GET    | `/api/donations/user/:address` | User's donations   |
+| GET    | `/api/badges`                  | List all badges    |
+| GET    | `/api/badges/user/:address`    | User's badges      |
 
 ## GraphQL Examples
 
@@ -405,7 +461,11 @@ This query retrieves all donations made by a specific user:
 
 ```graphql
 query GetUserDonations($donor: String!) {
-  donations(where: { donor: $donor }, orderBy: "timestamp", orderDirection: "desc") {
+  donations(
+    where: { donor: $donor }
+    orderBy: "timestamp"
+    orderDirection: "desc"
+  ) {
     items {
       id
       campaignId
@@ -491,32 +551,87 @@ Railway provides easy deployment for Ponder:
 
 ## Integration with Backend
 
-The backend polls the indexer to keep its cache synchronized. Configure the backend's `.env`:
+The indexer integrates with the backend using a **dual synchronization strategy**:
+
+### 1. Webhook Sync (PRIMARY - Real-time)
+
+The indexer **pushes data to the backend** immediately when events occur via webhook:
+
+**File:** `indexer/src/utils/syncBackend.ts`
+
+```typescript
+// Webhook pushes data to backend in real-time
+await axios.post(
+  `${BACKEND_URL}/api/sync/campaigns`,
+  {
+    campaign: newCampaign,
+  },
+  {
+    headers: { "x-api-key": PONDER_SYNC_API_KEY },
+  },
+);
+```
+
+**Configuration in backend's `.env`:**
+
+```env
+BACKEND_URL=http://localhost:3300
+PONDER_SYNC_API_KEY=your-sync-api-key
+```
+
+### 2. Auto-Sync (FALLBACK - Every 5 minutes)
+
+The backend **polls the indexer** every 5 minutes as a fallback mechanism to catch any missed events:
+
+**Configuration in backend's `.env`:**
 
 ```env
 PONDER_URL=http://localhost:42069
+SYNC_INTERVAL_MS=300000  # 5 minutes
 # Or production URL:
 # PONDER_URL=https://indexer.crowdfunding.example.com
 ```
 
-The backend's auto-sync service polls the indexer every 30 seconds:
+### Sync Flow Diagram
 
 ```mermaid
 sequenceDiagram
-    participant Backend
+    participant Blockchain as Base Sepolia
     participant Ponder as Ponder Indexer
-    participant Cache as PostgreSQL
+    participant Webhook as Webhook (PRIMARY)
+    participant AutoSync as Auto-Sync (FALLBACK)
+    participant Backend as Backend API
+    participant DB as PostgreSQL
 
-    loop Every 30 seconds
-        Backend->>Ponder: GET /api/campaigns
-        Ponder-->>Backend: Campaign data
-        Backend->>Cache: Upsert campaigns
-        
-        Backend->>Ponder: GET /api/donations
-        Ponder-->>Backend: Donation data
-        Backend->>Cache: Upsert donations
+    Note over Blockchain,DB: Real-time Path (< 1 second)
+    Blockchain->>Ponder: Event emitted
+    Ponder->>Ponder: Index to SQLite
+    Ponder->>Webhook: Push immediately
+    Webhook->>Backend: POST /api/sync/*
+    Backend->>DB: Insert/Update
+
+    Note over Blockchain,DB: Fallback Path (Every 5 minutes)
+    loop Every 5 minutes
+        AutoSync->>Ponder: Query GraphQL API
+        Ponder-->>AutoSync: All data
+        AutoSync->>Backend: Process data
+        Backend->>DB: Upsert (catch missed events)
     end
 ```
+
+**Why Dual Sync?**
+
+| Mechanism     | Purpose                | Frequency       | Data Volume   |
+| ------------- | ---------------------- | --------------- | ------------- |
+| **Webhook**   | Real-time updates      | Event-driven    | Only new data |
+| **Auto-Sync** | Recovery & consistency | Every 5 minutes | All data      |
+
+This ensures:
+
+- ✅ **Real-time updates** via webhook (99% of syncs)
+- ✅ **Data consistency** via auto-sync fallback (catches missed events)
+- ✅ **Resource efficiency** (5-minute interval instead of continuous polling)
+- ✅ **Automatic recovery** from network failures
 
 ## Troubleshooting
 
@@ -548,10 +663,10 @@ sequenceDiagram
 
 The following practices improve indexer performance:
 
-| Tip | Explanation |
-|-----|-------------|
-| Use Alchemy/Infura | Public RPC is rate-limited |
-| Set accurate startBlock | Skip unnecessary historical blocks |
-| Use PostgreSQL in production | Better performance than SQLite |
-| Add database indexes | Speed up frequent queries |
-| Use pagination | Avoid loading large datasets |
+| Tip                          | Explanation                        |
+| ---------------------------- | ---------------------------------- |
+| Use Alchemy/Infura           | Public RPC is rate-limited         |
+| Set accurate startBlock      | Skip unnecessary historical blocks |
+| Use PostgreSQL in production | Better performance than SQLite     |
+| Add database indexes         | Speed up frequent queries          |
+| Use pagination               | Avoid loading large datasets       |

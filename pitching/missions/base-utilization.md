@@ -7,10 +7,12 @@ Our technical architecture is deeply integrated with the Base stack to ensure sp
 - **Low-Cost Scalability**: CrowdFUNding utilizes the OP Stack's optimistic rollup technology. This ensures that even a **Rp 10,000 ($0.65)** donation is viable, as gas fees are negligible (~$0.01).
 - **Core Logic**: All `CampaignFactory`, `DonationTracking`, and `PetEvolution` contracts are deployed directly on Base, ensuring full transparency.
 
-## 2. Base OnchainKit (The UX Layer)
+## 2. Seamless Authentication (The UX Layer)
 
-- **Seedless Onboarding**: The platform leverages **Base OnchainKit** combined with Privy to offer "Gmail Login." This abstracts away the complexity of wallet management (EOA) for the end-user.
-- **Identity & Profile**: OnchainKit components are used to display user profiles, balances, and impact stats in a standardized, beautiful UI.
+- **Google OAuth 2.0**: The platform uses **Google OAuth 2.0** for social login, handled securely on the backend via Passport.js. This provides a familiar "Sign in with Google" experience.
+- **RainbowKit Integration**: For crypto-native users, **RainbowKit** provides wallet connection support for MetaMask, Coinbase Wallet, WalletConnect, and 100+ wallets.
+- **Dual Authentication**: Users can login with Google, connect a wallet, or both - and optionally link their wallet to their Google account for a unified profile.
+- **Identity & Profile**: User profiles, balances, and impact stats are displayed in a beautiful, standardized UI.
 
 ## 3. IDRX Integration (The Settlement Layer)
 

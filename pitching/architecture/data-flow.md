@@ -32,11 +32,11 @@ flowchart TB
 
 The following table explains the purpose and characteristics of each data layer:
 
-| Layer | Technology | Purpose | Latency |
-|-------|------------|---------|---------|
-| **Blockchain** | Base Sepolia | Permanent storage, source of truth | ~2 seconds |
-| **Indexer** | Ponder + SQLite/PostgreSQL | Real-time event processing | ~5 seconds |
-| **Backend Cache** | PostgreSQL | Fast queries, join operations | ~50 ms |
+| Layer             | Technology                 | Purpose                            | Latency    |
+| ----------------- | -------------------------- | ---------------------------------- | ---------- |
+| **Blockchain**    | Base Sepolia               | Permanent storage, source of truth | ~2 seconds |
+| **Indexer**       | Ponder + SQLite/PostgreSQL | Real-time event processing         | ~5 seconds |
+| **Backend Cache** | PostgreSQL                 | Fast queries, join operations      | ~50 ms     |
 
 ---
 
@@ -58,21 +58,21 @@ sequenceDiagram
 
     Note over Creator,Frontend: Step 1: User Input
     Creator->>Frontend: Fill form (name, target, description)
-    
+
     Note over Frontend,Wallet: Step 2: Transaction Signing
     Frontend->>Wallet: Request transaction signature
     Wallet->>Creator: Confirm transaction
     Creator->>Wallet: Approve
-    
+
     Note over Wallet,Campaign: Step 3: On-chain Storage
     Wallet->>Campaign: createCampaign(name, creatorName, targetAmount)
     Campaign->>Campaign: Store CampaignStruct
     Campaign->>Campaign: Emit CampaignCreated event
-    
+
     Note over Campaign,Indexer: Step 4: Event Indexing
     Campaign-->>Indexer: CampaignCreated(id, name, owner, target)
     Indexer->>Indexer: Insert into campaigns table
-    
+
     Note over Backend,DB: Step 5: Cache Sync (every 30s)
     Backend->>Indexer: GET /api/campaigns
     Indexer-->>Backend: Campaign data
@@ -80,6 +80,7 @@ sequenceDiagram
 ```
 
 **Key Points:**
+
 - On-chain data includes: `name`, `creatorName`, `targetAmount`, `owner`, `creationTime`
 - Off-chain data (description, images) is stored directly in PostgreSQL via backend API
 - The campaign becomes queryable via backend API within 30 seconds
@@ -88,17 +89,17 @@ sequenceDiagram
 
 The campaign data is represented differently at each layer. This table shows the mapping:
 
-| Field | Blockchain | Indexer | Backend Cache |
-|-------|------------|---------|---------------|
-| `id` | uint256 | integer (PK) | integer (PK) |
-| `name` | string | text | varchar(255) |
-| `creatorName` | string | text | varchar(255) |
-| `owner` | address | hex | varchar(42) |
-| `balance` | uint256 | bigint | decimal(78,0) |
-| `targetAmount` | uint256 | bigint | decimal(78,0) |
-| `creationTime` | uint256 | bigint | timestamp |
-| `description` | N/A | N/A | text |
-| `imageUrl` | N/A | N/A | varchar(500) |
+| Field          | Blockchain | Indexer      | Backend Cache |
+| -------------- | ---------- | ------------ | ------------- |
+| `id`           | uint256    | integer (PK) | integer (PK)  |
+| `name`         | string     | text         | varchar(255)  |
+| `creatorName`  | string     | text         | varchar(255)  |
+| `owner`        | address    | hex          | varchar(42)   |
+| `balance`      | uint256    | bigint       | decimal(78,0) |
+| `targetAmount` | uint256    | bigint       | decimal(78,0) |
+| `creationTime` | uint256    | bigint       | timestamp     |
+| `description`  | N/A        | N/A          | text          |
+| `imageUrl`     | N/A        | N/A          | varchar(500)  |
 
 ---
 
@@ -119,19 +120,19 @@ sequenceDiagram
 
     Note over Donor,Frontend: User selects currency and amount
     Donor->>Frontend: Select 0.01 ETH for Campaign #1
-    
+
     Note over Frontend,Campaign: Native token donation
     Frontend->>Campaign: donate(1) with value: 0.01 ETH
-    
+
     Note over Campaign,IDRX: Auto-swap process
     Campaign->>MockSwap: swapETHForToken{value: 0.01 ETH}(IDRX)
     MockSwap->>MockSwap: Calculate: 0.01 ETH × 268,400 = 2,684 IDRX
     MockSwap->>IDRX: Transfer 2,684 IDRX to Campaign
-    
+
     Note over Campaign,Indexer: Update state and emit
     Campaign->>Campaign: campaigns[1].balance += 2,684 IDRX
     Campaign->>Indexer: Emit DonationReceived(1, donor, 2684)
-    
+
     Note over Indexer: Index donation
     Indexer->>Indexer: Insert donation record
     Indexer->>Indexer: Update campaign balance
@@ -141,11 +142,11 @@ sequenceDiagram
 
 The MockSwap contract maintains exchange rates for converting between tokens. These rates are defined in the contract's storage:
 
-| Input | Output per 1 ETH | Calculation |
-|-------|------------------|-------------|
-| BASE (ETH) | 268,400 IDRX | Direct rate to IDRX |
-| USDC | 16,775 IDRX per USDC | USDC → ETH equivalent → IDRX |
-| IDRX | 1 IDRX | No swap needed |
+| Input      | Output per 1 ETH     | Calculation                  |
+| ---------- | -------------------- | ---------------------------- |
+| BASE (ETH) | 268,400 IDRX         | Direct rate to IDRX          |
+| USDC       | 16,775 IDRX per USDC | USDC → ETH equivalent → IDRX |
+| IDRX       | 1 IDRX               | No swap needed               |
 
 ### Donation Record Structure
 
@@ -162,13 +163,13 @@ erDiagram
         bigint timestamp
         hex transactionHash
     }
-    
+
     CAMPAIGNS {
         integer id PK
         text name
         bigint balance
     }
-    
+
     CAMPAIGNS ||--o{ DONATIONS : "has many"
 ```
 
@@ -190,23 +191,24 @@ sequenceDiagram
 
     Note over Owner,Frontend: Owner requests withdrawal
     Owner->>Frontend: Request withdraw 100,000 IDRX from Campaign #1
-    
+
     Note over Frontend,Campaign: Validate and execute
     Frontend->>Campaign: withdraw(1, 100000)
     Campaign->>Campaign: Verify msg.sender == campaign.owner
     Campaign->>Campaign: Verify balance >= 100000
-    
+
     Note over Campaign,IDRX: Transfer funds
     Campaign->>Campaign: campaigns[1].balance -= 100000
     Campaign->>IDRX: safeTransfer(owner, 100000)
     IDRX->>Owner: 100,000 IDRX credited
-    
+
     Note over Campaign,Indexer: Emit event
     Campaign->>Indexer: Emit FundWithdrawn(1, name, owner, creatorName, 100000)
     Indexer->>Indexer: Insert withdrawal record
 ```
 
 **Security Checks:**
+
 1. **Ownership**: Only the campaign creator can withdraw
 2. **Balance**: Cannot withdraw more than available balance
 3. **Reentrancy**: Protected by ReentrancyGuard modifier
@@ -217,18 +219,17 @@ sequenceDiagram
 
 ### User Authentication Options
 
-The platform supports multiple authentication methods to accommodate both crypto-native and traditional users.
+The platform supports dual authentication methods to accommodate both Web2 and Web3 users.
 
 ```mermaid
 flowchart LR
     subgraph Methods["Authentication Methods"]
-        Google["Google OAuth"]
-        Wallet["Wallet Connect"]
-        Embedded["Embedded Wallet (Privy)"]
+        Google["Google OAuth 2.0"]
+        Wallet["Web3 Wallet\n(RainbowKit)"]
     end
 
     subgraph Backend["Backend Processing"]
-        Passport["Passport.js"]
+        Passport["Passport.js\n(OAuth Strategy)"]
         JWT["JWT Generator"]
         Session["Session Store"]
     end
@@ -239,15 +240,14 @@ flowchart LR
 
     Google --> Passport
     Wallet --> Passport
-    Embedded --> Passport
     Passport --> JWT
     JWT --> Session
     Passport --> PostgreSQL
 ```
 
-### Authentication Flow (Google OAuth)
+### Authentication Flow (Google OAuth 2.0)
 
-For users who prefer social login, Google OAuth provides a familiar authentication experience while still creating a blockchain-ready account.
+For users who prefer social login, **Google OAuth 2.0** provides a familiar authentication experience handled entirely server-side for security.
 
 ```mermaid
 sequenceDiagram
@@ -255,22 +255,26 @@ sequenceDiagram
     participant Frontend
     participant Google
     participant Backend
-    participant Privy
     participant DB as PostgreSQL
 
     User->>Frontend: Click "Sign in with Google"
-    Frontend->>Google: Redirect to OAuth
+    Frontend->>Backend: Redirect to /auth/google
+    Backend->>Google: OAuth 2.0 request
     Google->>User: Show consent screen
     User->>Google: Grant permission
-    Google->>Frontend: Return auth code
-    Frontend->>Backend: POST /crowdfunding/google-login
-    Backend->>Google: Verify token
-    Google-->>Backend: User profile
-    Backend->>DB: Upsert user record
-    Backend->>Privy: Create embedded wallet (if new user)
-    Backend-->>Frontend: JWT token + user data
-    Frontend->>Frontend: Store in session
+    Google->>Backend: Return user profile
+    Backend->>DB: Create/update user record
+    Backend->>Backend: Generate JWT token
+    Backend->>Frontend: Set JWT cookie & redirect
+    Frontend->>Frontend: Read session from cookie
 ```
+
+**Key Points:**
+
+- OAuth handled entirely on backend (Passport.js)
+- JWT stored in httpOnly cookie (secure)
+- User can optionally link Web3 wallet later
+- No embedded wallet creation - users bring their own wallet
 
 ---
 
@@ -316,10 +320,10 @@ This code snippet shows how the DonationReceived event is processed:
 ```typescript
 ponder.on("Campaign:DonationReceived", async ({ event, context }) => {
   const { db } = context;
-  
+
   // Create unique ID from transaction hash and log index
   const donationId = `${event.transaction.hash}-${event.log.logIndex}`;
-  
+
   // Insert donation record
   await db.donations.insert({
     id: donationId,
@@ -330,7 +334,7 @@ ponder.on("Campaign:DonationReceived", async ({ event, context }) => {
     timestamp: event.block.timestamp,
     transactionHash: event.transaction.hash,
   });
-  
+
   // Update campaign balance
   await db.campaigns.update({
     id: Number(event.args.id),
@@ -356,19 +360,19 @@ sequenceDiagram
 
     loop Every 30 seconds
         Timer->>Sync: Trigger sync
-        
+
         Sync->>Ponder: GET /api/campaigns
         Ponder-->>Sync: Campaign list
         Sync->>DB: UPSERT campaigns
-        
+
         Sync->>Ponder: GET /api/donations
         Ponder-->>Sync: Donation list
         Sync->>DB: UPSERT donations
-        
+
         Sync->>Ponder: GET /api/badges
         Ponder-->>Sync: Badge list
         Sync->>DB: UPSERT badges
-        
+
         Sync->>Sync: Log: "Synced X campaigns, Y donations, Z badges"
     end
 ```
@@ -377,12 +381,12 @@ sequenceDiagram
 
 The backend maintains a PostgreSQL cache for several important reasons:
 
-| Reason | Explanation |
-|--------|-------------|
+| Reason                | Explanation                                                 |
+| --------------------- | ----------------------------------------------------------- |
 | **Query Performance** | Complex JOINs are faster on PostgreSQL than on indexed data |
-| **Off-chain Data** | Store descriptions, images, and user preferences |
-| **Data Enrichment** | Combine on-chain and off-chain data |
-| **Reliability** | Serve data even if Ponder is temporarily unavailable |
+| **Off-chain Data**    | Store descriptions, images, and user preferences            |
+| **Data Enrichment**   | Combine on-chain and off-chain data                         |
+| **Reliability**       | Serve data even if Ponder is temporarily unavailable        |
 
 ---
 
@@ -460,13 +464,13 @@ sequenceDiagram
     Note over User,Backend: User completes achievement
     User->>Backend: Action triggers achievement check
     Backend->>Backend: Verify eligibility
-    
+
     Note over Backend,Badge: Mint badge NFT
     Backend->>Badge: mintBadge(userAddress, name, description)
     Badge->>Badge: _tokenIds++
     Badge->>Badge: _mint(userAddress, newTokenId)
     Badge->>Badge: Store BadgeInfo
-    
+
     Note over Badge,Frontend: Event emission and display
     Badge->>Indexer: Emit BadgeMinted(tokenId, owner, name, description)
     Indexer->>Indexer: Insert badge record

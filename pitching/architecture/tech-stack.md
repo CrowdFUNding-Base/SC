@@ -12,7 +12,7 @@ Our technology stack is carefully chosen for **security**, **scalability**, and 
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
 │  │                        FRONTEND                                     │    │
 │  │  Next.js 16 │ React 19 │ TypeScript │ TailwindCSS 4                 │    │
-│  │  Privy │ RainbowKit │ OnchainKit │ wagmi │ viem │ Framer Motion     │    │
+│  │  RainbowKit │ wagmi │ viem │ Framer Motion │ Axios                  │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                     │                                       │
 │                             REST/GraphQL/RPC                                │
@@ -20,7 +20,7 @@ Our technology stack is carefully chosen for **security**, **scalability**, and 
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
 │  │                         BACKEND                                     │    │
 │  │  Express.js │ TypeScript │ PostgreSQL │ Passport.js │ JWT           │    │
-│  │  LangChain │ Google Generative AI │ Ethers.js v5                    │    │
+│  │  Google OAuth 2.0 │ Ethers.js v5                                    │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                     |                                       │
 │                                 Auto-Sync                                   │
@@ -76,9 +76,7 @@ These packages enable blockchain connectivity, allowing users to connect wallets
 
 | Package                    | Version  | Purpose                        |
 | -------------------------- | -------- | ------------------------------ |
-| **@privy-io/react-auth**   | ^3.12.0  | Social + wallet authentication |
 | **@rainbow-me/rainbowkit** | ^2.2.10  | Wallet connection UI           |
-| **@coinbase/onchainkit**   | ^1.1.2   | Base-native components         |
 | **wagmi**                  | ^2.19.5  | React hooks for Ethereum       |
 | **viem**                   | ^2.45.0  | Low-level blockchain utilities |
 | **@tanstack/react-query**  | ^5.90.20 | Data fetching & caching        |

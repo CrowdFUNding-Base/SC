@@ -7,8 +7,10 @@ This guide provides comprehensive instructions for setting up and running the Cr
 The frontend is a **Next.js 16** application built with React 19 and TypeScript. It provides the user interface for the CrowdFUNding platform, handling wallet connections, campaign browsing, donations, and achievement displays.
 
 **Key Features:**
+
 - Server-side rendering with App Router
-- Multiple wallet connection options (Privy, RainbowKit, OnchainKit)
+- Google OAuth 2.0 authentication with wallet sync
+- RainbowKit for Web3 wallet connections
 - Beautiful UI with TailwindCSS 4 and Framer Motion
 - Farcaster Miniapp integration
 - Direct blockchain interaction via wagmi/viem
@@ -44,7 +46,7 @@ flowchart TB
     subgraph Services["Service Layer"]
         WagmiConfig["Wagmi Configuration"]
         APIClient["Backend API (Axios)"]
-        PrivyAuth["Privy Auth"]
+        GoogleAuth["Google OAuth 2.0"]
     end
 
     subgraph External["External"]
@@ -63,12 +65,12 @@ flowchart TB
 
 The following table explains the major architectural choices:
 
-| Decision | Implementation | Benefit |
-|----------|---------------|---------|
-| **App Router** | Next.js 16 App Directory | Server components, streaming |
-| **Multi-Wallet** | Privy + RainbowKit | Support all user types |
-| **React Query** | TanStack Query | Smart caching, background refresh |
-| **Type-Safe Contracts** | Wagmi + Viem | Compile-time error detection |
+| Decision                | Implementation              | Benefit                           |
+| ----------------------- | --------------------------- | --------------------------------- |
+| **App Router**          | Next.js 16 App Directory    | Server components, streaming      |
+| **Dual Auth**           | Google OAuth + Web3 Wallets | Support both Web2 and Web3 users  |
+| **React Query**         | TanStack Query              | Smart caching, background refresh |
+| **Type-Safe Contracts** | Wagmi + Viem                | Compile-time error detection      |
 
 ## Prerequisites
 
@@ -156,8 +158,6 @@ Create a `.env.local` file in the project root:
 # Wallet Connection
 # ============================
 NEXT_PUBLIC_WALLET_CONNECT_ID=your_walletconnect_project_id
-NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
-NEXT_PUBLIC_ONCHAINKIT_API_KEY=your_onchainkit_api_key
 
 # ============================
 # Blockchain (RPC)
@@ -176,7 +176,7 @@ NEXT_PUBLIC_USDC_ADDRESS=0x1b929eB40670aA4e0D757d45cA9aea2311a25a97
 # ============================
 # Backend API
 # ============================
-NEXT_PUBLIC_API_URL=http://localhost:3300
+NEXT_PUBLIC_BACKEND_URL=http://localhost:3300
 
 # ============================
 # Farcaster (Optional)
@@ -188,12 +188,11 @@ NEXT_PUBLIC_FARCASTER_FRAME_URL=https://frames.example.com
 
 The following table provides instructions for obtaining each required key:
 
-| Variable | How to Obtain |
-|----------|---------------|
+| Variable                        | How to Obtain                                                           |
+| ------------------------------- | ----------------------------------------------------------------------- |
 | `NEXT_PUBLIC_WALLET_CONNECT_ID` | [WalletConnect Cloud](https://cloud.walletconnect.com) → Create Project |
-| `NEXT_PUBLIC_PRIVY_APP_ID` | [Privy Dashboard](https://privy.io) → Create App |
-| `NEXT_PUBLIC_ONCHAINKIT_API_KEY` | [Coinbase CDP](https://portal.cdp.coinbase.com) → Create API Key |
-| `NEXT_PUBLIC_ALCHEMY_KEY` | [Alchemy Dashboard](https://alchemy.com) → Create Base Sepolia App |
+| `NEXT_PUBLIC_ALCHEMY_KEY`       | [Alchemy Dashboard](https://alchemy.com) → Create Base Sepolia App      |
+| `NEXT_PUBLIC_BACKEND_URL`       | Your backend server URL (default: `http://localhost:3300`)              |
 
 ## Installation
 
@@ -221,16 +220,16 @@ The application will start at `http://localhost:3000`
 
 The application uses Next.js App Router with route groups for different layouts:
 
-| Route | Layout | Description |
-|-------|--------|-------------|
-| `/` | Minimal | Landing page |
-| `/home` | Main (with nav) | Campaign discovery |
-| `/campaign/:id` | Main (with nav) | Campaign detail |
-| `/donate/:id` | No nav | Donation flow |
-| `/history` | Main (with nav) | User donation history |
-| `/profile` | Main (with nav) | User settings |
-| `/honors` | Main (with nav) | Achievement badges |
-| `/login` | Auth | Authentication page |
+| Route           | Layout          | Description           |
+| --------------- | --------------- | --------------------- |
+| `/`             | Minimal         | Landing page          |
+| `/home`         | Main (with nav) | Campaign discovery    |
+| `/campaign/:id` | Main (with nav) | Campaign detail       |
+| `/donate/:id`   | No nav          | Donation flow         |
+| `/history`      | Main (with nav) | User donation history |
+| `/profile`      | Main (with nav) | User settings         |
+| `/honors`       | Main (with nav) | Achievement badges    |
+| `/login`        | Auth            | Authentication page   |
 
 ## Key Hooks
 
@@ -241,7 +240,7 @@ The frontend provides custom hooks that abstract blockchain interactions. These 
 This hook fetches campaign data from both the blockchain and backend API:
 
 ```tsx
-import { useCrowdfunding } from '@/hooks/useCrowdfunding';
+import { useCrowdfunding } from "@/hooks/useCrowdfunding";
 
 const CampaignList = () => {
   const { campaigns, isLoading, error } = useCrowdfunding();
@@ -251,7 +250,7 @@ const CampaignList = () => {
 
   return (
     <div className="grid grid-cols-3 gap-4">
-      {campaigns.map(campaign => (
+      {campaigns.map((campaign) => (
         <CampaignCard key={campaign.id} campaign={campaign} />
       ))}
     </div>
@@ -264,7 +263,7 @@ const CampaignList = () => {
 This hook handles the campaign creation flow including transaction signing:
 
 ```tsx
-import { useCreateCampaign } from '@/hooks/useCreateCampaign';
+import { useCreateCampaign } from "@/hooks/useCreateCampaign";
 
 const CreateCampaignForm = () => {
   const { createCampaign, isLoading, error } = useCreateCampaign();
@@ -273,7 +272,7 @@ const CreateCampaignForm = () => {
     await createCampaign({
       name: data.name,
       creatorName: data.creatorName,
-      targetAmount: parseUnits(data.target, 2) // IDRX has 2 decimals
+      targetAmount: parseUnits(data.target, 2), // IDRX has 2 decimals
     });
   };
 
@@ -286,7 +285,7 @@ const CreateCampaignForm = () => {
 This hook handles donations with support for multiple currencies:
 
 ```tsx
-import { useDonate } from '@/hooks/useDonate';
+import { useDonate } from "@/hooks/useDonate";
 
 const DonationForm = ({ campaignId }) => {
   const { donate, donateWithToken, isLoading } = useDonate();
@@ -308,7 +307,7 @@ const DonationForm = ({ campaignId }) => {
 This hook allows campaign owners to withdraw accumulated funds:
 
 ```tsx
-import { useWithdraw } from '@/hooks/useWithdraw';
+import { useWithdraw } from "@/hooks/useWithdraw";
 
 const WithdrawButton = ({ campaignId, amount }) => {
   const { withdraw, isLoading } = useWithdraw();
@@ -319,56 +318,110 @@ const WithdrawButton = ({ campaignId, amount }) => {
 
   return (
     <button onClick={handleWithdraw} disabled={isLoading}>
-      {isLoading ? 'Processing...' : 'Withdraw Funds'}
+      {isLoading ? "Processing..." : "Withdraw Funds"}
     </button>
   );
 };
 ```
 
-## Wallet Integration
+## Authentication & Wallet Integration
 
-The frontend supports multiple wallet connection methods to accommodate different user preferences:
+The frontend supports dual authentication methods to accommodate different user preferences:
 
 ```mermaid
 flowchart LR
-    subgraph Options["Connection Options"]
-        Privy["Privy\n(Social + Wallet)"]
-        Rainbow["RainbowKit\n(Wallet Only)"]
-        Onchain["OnchainKit\n(Coinbase)"]
+    subgraph Auth["Authentication Options"]
+        GoogleAuth["Google OAuth 2.0\n(Server-side)"]
+        WalletAuth["Web3 Wallet\n(RainbowKit)"]
     end
 
     subgraph Features["Features"]
-        Social["Google/Email Login"]
-        Embedded["Embedded Wallet"]
-        External["External Wallets"]
+        Social["Google Login"]
+        WalletSync["Wallet Sync"]
+        External["External Wallets\n(MetaMask, etc)"]
     end
 
-    Privy --> Social
-    Privy --> Embedded
-    Rainbow --> External
-    Onchain --> External
+    GoogleAuth --> Social
+    GoogleAuth --> WalletSync
+    WalletAuth --> External
+    WalletAuth --> WalletSync
 ```
 
-### Wallet Connection Example
+### Google OAuth 2.0 Authentication
+
+The application uses **Google OAuth 2.0** for social login, handled server-side via Passport.js:
 
 ```tsx
-// Using Privy (supports social login + wallets)
-import { usePrivy } from '@privy-io/react-auth';
+// Login with Google
+const LoginButton = () => {
+  const handleGoogleLogin = () => {
+    // Redirect to backend OAuth endpoint
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/google`;
+  };
 
-const ConnectButton = () => {
-  const { login, logout, user, ready } = usePrivy();
+  return (
+    <button onClick={handleGoogleLogin} className="btn-google">
+      <GoogleIcon />
+      Continue with Google
+    </button>
+  );
+};
+```
 
-  if (!ready) return <Spinner />;
-  
-  if (user) {
-    return (
-      <button onClick={logout}>
-        Disconnect ({user.wallet?.address?.slice(0, 6)}...)
-      </button>
-    );
-  }
+**Authentication Flow:**
 
-  return <button onClick={login}>Connect Wallet</button>;
+1. User clicks "Login with Google"
+2. Redirects to backend `/auth/google` endpoint
+3. Backend handles OAuth flow with Google
+4. User authorizes application
+5. Backend receives user info, creates/updates user in database
+6. Backend sets JWT cookie and redirects back to frontend
+7. Frontend reads cookie and displays user session
+
+### Web3 Wallet Connection (RainbowKit)
+
+For crypto-native users, RainbowKit provides wallet connection:
+
+```tsx
+// Using RainbowKit for Web3 wallet connection
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
+
+const WalletConnectButton = () => {
+  const { address, isConnected } = useAccount();
+
+  return <ConnectButton />;
+};
+```
+
+### Wallet-Google Account Sync
+
+Users can link their Web3 wallet to their Google account:
+
+```tsx
+// Check if wallet needs to be synced with Google account
+import { checkWalletSync, syncWallet } from "@/utils/api/sync";
+
+const SyncWalletButton = () => {
+  const { address } = useAccount();
+  const [needsSync, setNeedsSync] = useState(false);
+
+  useEffect(() => {
+    if (address) {
+      checkWalletSync(address).then((response) => {
+        setNeedsSync(response.needsSync);
+      });
+    }
+  }, [address]);
+
+  const handleSync = async () => {
+    await syncWallet(address);
+    // Show success message
+  };
+
+  if (!needsSync) return null;
+
+  return <button onClick={handleSync}>Sync wallet with your account</button>;
 };
 ```
 
@@ -390,7 +443,7 @@ const CampaignCard = ({ campaign }) => (
 ### Animations with Framer Motion
 
 ```tsx
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 const AnimatedCard = ({ children }) => (
   <motion.div
@@ -434,6 +487,7 @@ Vercel provides the best experience for Next.js applications:
 4. Deploy!
 
 Or use the CLI:
+
 ```bash
 vercel --prod
 ```
@@ -441,6 +495,7 @@ vercel --prod
 ### Other Platforms
 
 The app can be deployed to any platform supporting Next.js:
+
 - Netlify
 - Railway
 - AWS Amplify
@@ -458,7 +513,8 @@ The app can be deployed to any platform supporting Next.js:
 
 **Error:** `Cannot read properties of undefined (reading 'write')`
 
-**Solution:** 
+**Solution:**
+
 1. Verify contract addresses in `.env.local`
 2. Ensure wallet is connected to Base Sepolia (chainId: 84532)
 
@@ -466,7 +522,8 @@ The app can be deployed to any platform supporting Next.js:
 
 **Error:** `Network Error`
 
-**Solution:** 
+**Solution:**
+
 1. Ensure backend is running at `NEXT_PUBLIC_API_URL`
 2. Check CORS settings on backend
 
@@ -491,8 +548,8 @@ export default {
 Force users to switch to Base Sepolia:
 
 ```tsx
-import { useSwitchChain } from 'wagmi';
-import { baseSepolia } from 'wagmi/chains';
+import { useSwitchChain } from "wagmi";
+import { baseSepolia } from "wagmi/chains";
 
 const NetworkSwitcher = () => {
   const { switchChain } = useSwitchChain();
@@ -510,12 +567,12 @@ const NetworkSwitcher = () => {
 Enable detailed logging for wagmi:
 
 ```tsx
-import { useContractWrite } from 'wagmi';
+import { useContractWrite } from "wagmi";
 
 const { writeAsync, error, status } = useContractWrite({
   // config...
 });
 
-console.log('Transaction status:', status);
-if (error) console.error('Contract error:', error);
+console.log("Transaction status:", status);
+if (error) console.error("Contract error:", error);
 ```

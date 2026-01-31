@@ -16,7 +16,7 @@ Base is the only ecosystem capable of supporting a high-frequency, low-margin co
 
 - **Micro-Donation Viability**: Base's near-zero transaction fees allow the protocol to process donations as small as Rp 10,000 (~$0.65) without the fees eating the impact—solving the "12.66% Financial Tax" problem.
 - **Consumer Crypto Standard**: CrowdFUNding aligns perfectly with Base's mission to shift the narrative from speculative "PvP Casinos" to meaningful "PvE Communities," bringing the next billion users onchain through real-world utility.
-- **Seamless UX with Base OnchainKit**: Leveraging Account Abstraction, the app offers "Seedless Onboarding" via Google/Privy, making the transition from a standard Web2 app to an onchain protocol completely invisible to the user.
+- **Seamless Authentication**: The app offers dual authentication via **Google OAuth 2.0** (server-side) and **RainbowKit** (Web3 wallets), making the platform accessible to both Web2 and Web3 users with optional wallet-account linking.
 
 ## Why CrowdFUNding Matters for Base & IDRX
 

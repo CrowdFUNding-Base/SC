@@ -1,117 +1,142 @@
-# Seedless Access (The Onramp)
+# Dual Authentication System (The Onramp)
 
-> **As a user**, I can log in instantly using my Google account, bypassing the need to manage a blockchain address or seed phrase.
+> **As a user**, I can log in using my Google account or connect my Web3 wallet, with the option to link both for a unified profile.
 
 ---
 
 ## Overview
 
-Seedless Access utilizes **Base OnchainKit** and Account Abstraction to bridge Web2 and Web3. Users login with familiar credentials (Gmail) while the system creates a secure smart wallet in the background, eliminating the complexity of wallet management.
+The CrowdFUNding platform employs a **dual authentication strategy** that accommodates both traditional Web2 users and crypto-native Web3 users. This approach eliminates barriers while respecting user preferences and technical sophistication levels.
 
-Traditional blockchain onboarding requires wallet extensions, seed phrase storage, gas fee understanding, and unfamiliar interfaces—causing 95% drop-off in Web3 user acquisition. Seedless Access removes these friction points through OAuth authentication and Multi-Party Computation (MPC) for key management.
+**Google OAuth 2.0** provides familiar social login for mainstream users, while **RainbowKit** enables Web3 wallet connections for crypto enthusiasts. Users can also link their wallet to their Google account for a unified experience.
+
+Traditional blockchain onboarding requires wallet extensions, seed phrase storage, gas fee understanding, and unfamiliar interfaces—causing 95% drop-off in Web3 user acquisition. Our dual authentication system removes these friction points while still supporting self-custodial wallets.
 
 ### What It Solves
 
-1. **Onboarding Friction**: Traditional Web3 onboarding requires 6-8 steps including wallet installation, seed phrase backup, and initial funding. Research shows 80% of users abandon at the seed phrase step alone. Seedless Access reduces this to a single Google login click.
+1. **Onboarding Friction**: Traditional Web3 onboarding requires 6-8 steps including wallet installation, seed phrase backup, and initial funding. Research shows 80% of users abandon at the seed phrase step alone. Google OAuth reduces this to a single login click.
 
-2. **Mass Adoption Barrier**: Indonesia has 67M+ users comfortable with digital payments (QRIS, GoPay, OVO), yet less than 5% have used blockchain. The barrier isn't interest—it's complexity. By matching the familiar Google login experience, we unlock this massive user base.
+2. **Mass Adoption Barrier**: Indonesia has 67M+ users comfortable with digital payments (QRIS, GoPay, OVO), yet less than 5% have used blockchain. The barrier isn't interest—it's complexity. By offering familiar Google login alongside Web3 wallets, we unlock this massive user base.
 
-3. **Security Concerns**: Seed phrases create a paradox—they must be secure enough to prevent theft but accessible enough to recover funds. Most users store them insecurely or lose them entirely. MPC distributes key shares across secure parties, enabling social recovery without seed phrase risks.
+3. **Flexibility & Choice**: Crypto-native users can use their existing wallets (MetaMask, Coinbase Wallet, etc.) while new users can start with Google and add a wallet later when they're ready.
 
 ---
 
 ## Technical Flow
 
-The following diagram illustrates the complete user journey from initial login to dashboard access. Each step is handled automatically by the system, requiring only a single user action (clicking "Login with Google"):
+The following diagram illustrates the dual authentication paths available to users:
 
 ```mermaid
 flowchart LR
-    A[User Clicks Login] --> B[Google OAuth via Privy]
-    B --> C{Identity Verified?}
-    C -->|Yes| D[Check Existing Wallet]
-    D --> E{Wallet Exists?}
-    E -->|No| F[Create Base Smart Wallet]
-    E -->|Yes| G[Load Existing Wallet]
-    F --> H[Dashboard Access]
-    G --> H
-    C -->|No| I[Authentication Failed]
+    subgraph GooglePath["Google OAuth Path"]
+        A1[Click Sign in with Google] --> B1[Backend OAuth Flow]
+        B1 --> C1[Google Authorization]
+        C1 --> D1[Backend Creates User]
+        D1 --> E1[JWT Cookie Set]
+        E1 --> F1[Dashboard Access]
+    end
+
+    subgraph WalletPath["Web3 Wallet Path"]
+        A2[Click Connect Wallet] --> B2[RainbowKit Modal]
+        B2 --> C2[Select Wallet]
+        C2 --> D2[Sign Message]
+        D2 --> E2[Backend Verifies]
+        E2 --> F2[Dashboard Access]
+    end
+
+    subgraph Sync["Wallet Sync (Optional)"]
+        F1 --> G[Link Wallet]
+        F2 --> H[Link Google Account]
+        G --> I[Unified Profile]
+        H --> I
+    end
 ```
 
-The flow consists of five key stages:
+### Google OAuth Flow (Server-Side)
 
-1. **Authentication Initiation**: User clicks the login button, triggering the OAuth flow with Google via Privy SDK.
+1. **Authentication Initiation**: User clicks "Sign in with Google" button
+2. **Backend Redirect**: Frontend redirects to `/auth/google` endpoint
+3. **OAuth Authorization**: Backend (Passport.js) handles OAuth with Google
+4. **User Creation**: Backend creates/updates user in PostgreSQL
+5. **Session Establishment**: JWT token set in httpOnly cookie
+6. **Dashboard Access**: User redirected to frontend with active session
 
-2. **Identity Verification**: Google authenticates the user and returns identity tokens to our backend.
+### Web3 Wallet Flow (Client-Side)
 
-3. **Wallet Lookup**: The system checks if a smart wallet already exists for this user's identity.
-
-4. **Wallet Provisioning**: For new users, a Base Smart Wallet (ERC-4337 compliant) is created. The private key is generated using MPC, with shares distributed across Privy's secure infrastructure and the user's device.
-
-5. **Session Establishment**: A JWT session token is issued, and the user gains access to their personalized dashboard with their wallet ready for transactions.
+1. **Wallet Connection**: User clicks "Connect Wallet" button
+2. **RainbowKit Modal**: User selects from 100+ supported wallets
+3. **Wallet Authorization**: User approves connection in wallet
+4. **Message Signing**: User signs authentication message
+5. **Backend Verification**: Backend verifies signature and creates/finds user
+6. **Dashboard Access**: User gains access with wallet address as identifier
 
 ### Technical Components
 
-The table below details the core technologies powering Seedless Access and their specific roles in the authentication and wallet management process:
+The table below details the core technologies powering our dual authentication system:
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Authentication** | Privy SDK | Handles OAuth 2.0 integration with Google, managing identity verification and session tokens |
-| **Wallet Creation** | Base OnchainKit | Creates ERC-4337 compliant Smart Accounts that can be controlled by social login credentials |
-| **Key Management** | MPC (Multi-Party Computation) | Distributes private key shares across multiple parties, eliminating single points of failure |
-| **Session Handling** | JWT Tokens | Maintains persistent login state across browser sessions without requiring re-authentication |
+| Component              | Technology                     | Purpose                                             |
+| ---------------------- | ------------------------------ | --------------------------------------------------- |
+| **Social Auth**        | Google OAuth 2.0 + Passport.js | Server-side OAuth flow for Google login             |
+| **Wallet Connection**  | RainbowKit + Wagmi             | Client-side wallet connection UI and hooks          |
+| **Session Management** | JWT (httpOnly cookies)         | Secure, stateless authentication                    |
+| **User Storage**       | PostgreSQL (Supabase)          | Stores user profiles, wallet addresses, sync status |
+| **Wallet Signing**     | Viem                           | Message signing and verification                    |
 
 ---
 
 ## Comparison with Traditional Onboarding
 
-The following comparison demonstrates the dramatic reduction in complexity when using Seedless Access versus traditional Web3 onboarding. These metrics are based on user research conducted across multiple blockchain platforms and validated against industry benchmarks:
+The following comparison demonstrates the reduction in complexity:
 
-| Metric | Traditional Web3 | CrowdFUNding (Seedless) |
-|--------|------------------|------------------------|
-| **Time to First Action** | 10-15 minutes | Less than 30 seconds |
-| **Steps Required** | 6-8 steps (install, backup, fund) | 2 steps (login, donate) |
-| **Seed Phrase Management** | Required (12-24 words) | Not Required |
-| **Wallet Installation** | Required (MetaMask, etc.) | Not Required |
-| **Technical Knowledge** | High (gas, networks, addresses) | None |
-| **Recovery Method** | Seed phrase only | Email/Social Recovery |
-| **Target Audience** | Crypto-native users | Everyone |
-
-The difference in Time to First Action (from 10-15 minutes to under 30 seconds) represents a 95%+ reduction in onboarding time. This is achieved by eliminating all blockchain-specific steps and replacing them with a single OAuth flow that users complete daily for other services.
+| Metric                     | Traditional Web3 | Google OAuth | Web3 Wallet (Our Impl) |
+| -------------------------- | ---------------- | ------------ | ---------------------- |
+| **Time to First Action**   | 10-15 minutes    | 30 seconds   | 1-2 minutes            |
+| **Steps Required**         | 6-8 steps        | 2 steps      | 3 steps                |
+| **Seed Phrase Management** | Required         | Not Required | User's responsibility  |
+| **Wallet Installation**    | Required         | Not Required | Optional               |
+| **Technical Knowledge**    | High             | None         | Medium                 |
+| **Self-Custody**           | Yes              | No           | Yes                    |
+| **Target Audience**        | Crypto-native    | Everyone     | Crypto users           |
 
 ---
 
 ## Why It Matters
 
-By removing the "Web3 Wall," CrowdFUNding ensures that anyone—from a university student to a rural donor—can participate in the onchain economy without technical hurdles. This democratization of access is essential for achieving the platform's mission of enabling borderless, transparent philanthropy.
+By offering **both** authentication methods, CrowdFUNding ensures that anyone—from a university student to a DeFi power user—can participate without technical hurdles or forcing them away from self-custody.
 
 ### Key Benefits
 
-1. **Zero Friction Entry**: Users never see a wallet address, gas fee prompt, or network selection dialog. These complexities are abstracted away while the user enjoys the security benefits of blockchain technology.
+1. **Zero Friction for Newcomers**: Google OAuth provides instant access without blockchain knowledge
+2. **Respects Self-Custody**: Crypto users can bring their own wallets
+3. **Flexible Linking**: Users can link wallet to Google account for unified profile
+4. **Secure Sessions**: Server-side OAuth with JWT cookies (no local storage vulnerabilities)
+5. **No Vendor Lock-in**: No reliance on third-party wallet providers
 
-2. **Familiar User Experience**: The login flow is identical to signing into Gmail, YouTube, or any other Google-integrated service. This familiarity reduces cognitive load and builds immediate trust.
+### Authentication Options Comparison
 
-3. **Security Without Complexity**: MPC-based key management provides institutional-grade security without requiring users to understand cryptographic concepts. Key shares are distributed across multiple secure enclaves, and social recovery enables account restoration through verified identity.
-
-4. **Progressive Decentralization**: Advanced users who want full control can export their wallet to a traditional self-custody solution. This respects user autonomy while not requiring it for basic functionality.
-
-### Impact Metrics
-
-The table below shows expected improvements in user conversion and support overhead based on comparable implementations of seedless onboarding in other Web3 applications:
-
-| Metric | Before (Traditional) | After (Seedless) |
-|--------|----------------------|------------------|
-| **Conversion Rate** | Approximately 5% | Expected 40%+ |
-| **User Drop-off** | 80% at seed phrase step | Less than 10% |
-| **Support Tickets** | High (lost keys, confusion) | Minimal |
+| Feature              | Google OAuth Only | Wallet Only | Our Dual System |
+| -------------------- | ----------------- | ----------- | --------------- |
+| **Accessibility**    | High              | Low         | High            |
+| **Self-Custody**     | No                | Yes         | Optional        |
+| **Onboarding Speed** | Fastest           | Slow        | Flexible        |
+| **User Choice**      | Limited           | Limited     | Maximum         |
+| **Target Market**    | 100%              | 5%          | 100%            |
 
 ---
 
-## Related Smart Contracts
+## Related Implementation
 
-This feature is primarily handled by the frontend and backend integration rather than custom smart contracts. The key integrations include:
+**Backend (Passport.js)**: Handles Google OAuth strategy, user creation, JWT generation
 
-**Privy SDK**: Manages the OAuth flow, identity verification, and MPC key generation. This SDK handles the complexity of secure key management while exposing a simple API for authentication.
+- File: `be/controllers/authController.ts`
+- Routes: `/auth/google`, `/auth/google/callback`
 
-**Base OnchainKit**: Provides the smart wallet infrastructure, creating ERC-4337 compliant accounts that can execute transactions on behalf of the user without requiring them to manage private keys directly.
+**Frontend (RainbowKit)**: Provides wallet connection UI
 
-**Campaign.sol**: Once authenticated, users interact with Campaign.sol for donations. The smart wallet created by OnchainKit signs transactions seamlessly, making the donation experience indistinguishable from a Web2 payment flow.
+- Component: `<ConnectButton />` from `@rainbow-me/rainbowkit`
+- Hooks: `useAccount`, `useConnect`, `useSignMessage` from `wagmi`
+
+**Wallet Sync**: Optional linking between Google account and wallet
+
+- API: `/check-wallet-sync`, `/sync-wallet`
+- Component: `<SyncConfirmModal />`

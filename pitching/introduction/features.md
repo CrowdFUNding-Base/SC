@@ -2,11 +2,11 @@
 
 CrowdFUNding combines the familiarity of Web2 with the power of Web3 through five core features designed to maximize velocity and retention.
 
-## 1. Seedless Access (The Onramp)
+## 1. Seamless Authentication (The Onramp)
 
-> **As a user**, I can log in instantly using my Google account, bypassing the need to manage a blockchain address or seed phrase.
+> **As a user**, I can log in instantly using my Google account or connect my Web3 wallet, with the option to link both for a unified profile.
 
-Users can log in instantly using their Google account via **Base OnchainKit** and Privy ID. This bypasses the biggest barrier to entry in Web3—the seed phrase—making the platform accessible to everyone, from university students to rural donors.
+Users can log in using **Google OAuth 2.0** (handled securely on the backend) or connect their Web3 wallet via **RainbowKit**. This dual authentication approach accommodates both traditional users and crypto-native users, making the platform accessible to everyone from university students to DeFi enthusiasts.
 
 ## 2. Instant Fiat Gateway (Local Rail)
 
